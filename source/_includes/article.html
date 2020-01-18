@@ -1,11 +1,4 @@
 <article class="post">
-  <figure class="post-thumbnail {% if post.image %}{% else %}no-image{% endif %}">
-    <a href="{{ post.url | prepend: site.baseurl }}">
-      {% if post.image %}
-        <img src="{{ post.image }}" alt="{{ post.title }}">
-      {% endif %}
-    </a>
-  </figure>
   <div class="post-content">
     <header class="post-header">
       <h1 class="post-title">
@@ -15,6 +8,7 @@
         <time>{{ post.date | date: "%b %-d, %Y" }}</time>
       </em>
     </header>
-    <p><a href="{{ post.url | prepend: site.baseurl }}" title="Permalink to: {{ post.title }}">{{ post.content | strip_html | truncatewords: 30 }} <span class="read-more">[read more]</span></a></p>
+    <p>{{ post.content | strip_html | truncatewords: 30 }}</p>
+    <p><a href="{{ post.url | prepend: site.baseurl }}" title="Permalink to: {{ post.title }}"><span class="read-more">read more...</span></a></p>
   </div>
 </article>
