@@ -3,25 +3,35 @@ layout: pages
 ---
 
 <article role="article" class="post">
-
   <div class="card">
-    <header class="post-header">
-      <h1 class="post-title">{{ page.title }}</h1>
-      <em class="post-meta">
-        <time>{{ page.date | date: "%b %-d, %Y" }}{% if page.author %} • {{ page.author }}{% endif %}{% if page.meta %} • {{ page.meta }}{% endif %}</time>
-      </em>
-    </header>
+    <div class="page-content">
+      <p class="back-link"><a href="{{ '/' | prepend: site.baseurl }}blog"><span>⟵ Back</span></a></pclass="back-link">
 
-    <div class="post-content">
-      {% if page.image %}
-        <figure class="post-thumbnail {% if page.image %}{% else %}no-image{% endif %}">
-          <img src="{{ page.image }}" alt="{{ page.title }}">
-        </figure>
-      {% endif %}
-      {{ content }}
+      <header class="post-header">
+        <h1 class="post-title">{{ page.title }}</h1>
+        <em class="post-meta">
+          <time>{{ page.date | date: "%b %-d, %Y" }}{% if page.author %} • {{ page.author }}{% endif %}{% if page.meta %} • {{ page.meta }}{% endif %}</time>
+        </em>
+        <br>
+        <div class="post-tags">
+          {% for tag in page.tags %}
+            <a class="tag-header" href="{{ site.url }}{{ site.baseurl }}/tags#{{ tag }}">
+              #{{ tag }}
+            </a>
+          {% endfor %}
+        </div>
+      </header>
+
+      <div class="post-content">
+        {% if page.image %}
+          <figure class="post-thumbnail {% if page.image %}{% else %}no-image{% endif %}">
+            <img src="{{ page.image }}" alt="{{ page.title }}">
+          </figure>
+        {% endif %}
+        {{ content }}
+      </div>
+
+      {% include comments.html %}
     </div>
-
-    {% include comments.html %}
   </div>
-
 </article>

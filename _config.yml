@@ -45,5 +45,7 @@ navbar:
     title: About
   - slug: blog
     title: Blog
+  - slug: tags
+    title: Tags
 
 exclude: ["config.rb", "src", "Gemfile", "Gemfile.lock", "package.json","README.md", "Rakefile"]
