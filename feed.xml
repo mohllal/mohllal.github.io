@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Kareem Mohllal</title>
+    <description>Kareem Mohllal's personal website</description>
+    <link>https://mohllal.github.io/</link>
+    <atom:link href="https://mohllal.github.io/feed.xml" rel="self" type="application/rss+xml"/>
+    <pubDate>Mon, 11 May 2020 00:18:15 +0200</pubDate>
+    <lastBuildDate>Mon, 11 May 2020 00:18:15 +0200</lastBuildDate>
+    <generator>Jekyll v3.6.3</generator>
+    
+      <item>
+        <title>Node.js Multithreading!</title>
+        <description>&lt;p&gt;Node.js used to be defined as a &lt;strong&gt;single-threaded asynchronous&lt;/strong&gt; event-driven JavaScript runtime.&lt;/p&gt;
+
+&lt;p&gt;It was built to be a &lt;strong&gt;non-blocking I/O&lt;/strong&gt; JavaScript runtime to build scalable network applications, so it uses the &lt;strong&gt;event-driven&lt;/strong&gt; asynchronous paradigm instead of multithreading to achieve this goal.&lt;/p&gt;
+
+&lt;p&gt;So basically, what is the difference between multithreading and asynchrony?&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;Multithreading&lt;/strong&gt;: A single CPU core can handle multiple threads of execution concurrently.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Asynchrony&lt;/strong&gt;: Make events run separately from the application’s primary thread and notify it via signals when an event is completed or failed.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;figure&gt;
+  &lt;img title=&quot;Multithreading vs Asynchrony&quot; src=&quot;../../../images/posts/2019-10-13-nodejs-multithreading/multithreading-vs-asynchrony.png&quot; /&gt;
+
+  &lt;figcaption&gt;Multithreading vs Asynchrony&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;h3 id=&quot;would-it-be-useful-to-use-the-multithreading-paradigm-in-io-bound-tasks&quot;&gt;Would it be useful to use the multithreading paradigm in I/O-bound tasks?&lt;/h3&gt;
+
+&lt;p&gt;Well though, for network applications, having threads that are just waiting for an I/O task to complete is not very efficient because &lt;strong&gt;threads are resource consuming&lt;/strong&gt;, no matter if they are in a waiting state or if they are active.&lt;/p&gt;
+
+&lt;p&gt;Each thread uses a portion of the CPU, and when threads are waiting to perform I/O tasks, they are just wasting CPU time which otherwise would be used by threads that have actual CPU work to perform.&lt;/p&gt;
+
+&lt;p&gt;There is also an overhead to the overall application performance caused by the &lt;strong&gt;context switching&lt;/strong&gt; done by the CPU when it switches from executing one thread to executing another, the CPU needs to save the local data, application pointer etc. of the current thread, and load the local data, application pointer etc. of the next thread to execute.&lt;/p&gt;
+
+&lt;p&gt;And also, since threads can access shared data; This can lead to many &lt;strong&gt;concurrency issues&lt;/strong&gt; such as race conditions, deadlocks, and resource starvation.&lt;/p&gt;
+
+&lt;p&gt;Event-driven asynchronous I/O reduces the number of concurrent threads by removing the ones that are in a waiting state, which increases the application’s scalability and leads to more simpler application design.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Thread-based networking is relatively inefficient and very difficult to use. Furthermore, users of Node.js are free from worries of dead-locking the process, since there are no locks. Almost no function in Node.js directly performs I/O, so the process never blocks. Because nothing blocks, scalable systems are very reasonable to develop in Node.js. — &lt;a href=&quot;https://nodejs.org/en/about/&quot;&gt;Node.js Documentation&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;figure&gt;
+  &lt;img title=&quot;Multithreading Blocking I/O vs Event-Driven Non-Blocking I/O&quot; src=&quot;../../../images/posts/2019-10-13-nodejs-multithreading/blocking-vs-nonblocking.png&quot; /&gt;
+
+  &lt;figcaption&gt;Multithreading Blocking I/O vs Event-Driven Non-Blocking I/O&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;h3 id=&quot;nodejs-is-using-threads-behind-the-scenes-how&quot;&gt;Node.js is using threads behind the scenes! How?&lt;/h3&gt;
+
+&lt;p&gt;Node.js has two types of threads:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;The one &lt;strong&gt;Event Loop&lt;/strong&gt; thread (aka the main thread).&lt;/li&gt;
+  &lt;li&gt;The &lt;strong&gt;Worker Pool&lt;/strong&gt; (aka threadpool) threads.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Node.js runs JavaScript code in the Event Loop (initialization and callbacks) which is also responsible for fulfilling non-blocking asynchronous requests like network I/O.&lt;/p&gt;
+
+&lt;p&gt;As for Worker Pool threads which are responsible for offloading work for I/O APIs that can’t be done asynchronously at the OS level, as well as some particularly CPU-intensive APIs.&lt;/p&gt;
+
+&lt;p&gt;We have no control over Worker Pool threads as they are automatically created and managed using the C library &lt;a href=&quot;http://docs.libuv.org/en/v1.x/threadpool.html&quot;&gt;libuv&lt;/a&gt; on which Node.js was built.&lt;/p&gt;
+
+&lt;h3 id=&quot;but-what-about-cpu-intensive-tasks-that-cant-be-fulfilled-using-worker-pool-threads&quot;&gt;But what about CPU-intensive tasks that can’t be fulfilled using Worker Pool threads?&lt;/h3&gt;
+
+&lt;p&gt;What if we have some code that performs some synchronous CPU-intensive stuff such as hashing every element in a very large array using the crypto module?&lt;/p&gt;
+
+&lt;pre class=&quot;prettyprint&quot;&gt;
+    &lt;code class=&quot;language-js&quot;&gt;
+      const crypto = require('crypto');
+      app.get('/hash-array', (req, res) =&amp;gt; {
+        const array = req.body.array; // Large array
+
+        // This is a CPU-intensive task
+        for (const element of array) {
+          const hash = crypto.createHmac('sha256', 'secret')
+            .update(element)
+            .digest('hex');
+          console.log(hash);
+        }
+      });
+      ...
+    &lt;/code&gt;
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;In the above example, we have a block of code that takes a lot of computational time. Since Node.js runs callbacks registered for events in the Event Loop, this callback code will make the &lt;strong&gt;Event Loop thread blocked&lt;/strong&gt; and unable to handle requests from other clients until it finishes its execution.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Because Node handles many clients with few threads, if a thread blocks handling one client’s request, then pending client requests may not get a turn until the thread finishes its callback or task. The fair treatment of clients is thus the responsibility of your application. This means that you shouldn’t do too much work for any client in any single callback or task. — &lt;a href=&quot;https://nodejs.org/en/docs/guides/dont-block-the-event-loop/&quot;&gt;Node.js Documentation&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;And here are some other examples of synchronous CPU-intensive tasks:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;ReDoS&lt;/strong&gt; (Regular expression Denial of Service): Using a vulnerable regular expression.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;JSON DoS&lt;/strong&gt; (JSON Denial of Service): Using large JSON objects in &lt;code&gt;JSON.parse&lt;/code&gt; or &lt;code&gt;JSON.stringify&lt;/code&gt;.&lt;/li&gt;
+  &lt;li&gt;Some &lt;strong&gt;synchronous Node.js APIs&lt;/strong&gt; such as &lt;code&gt;zlib.inflateSync&lt;/code&gt;, &lt;code&gt;fs.readFileSync&lt;/code&gt;, &lt;code&gt;child.execSync&lt;/code&gt;, etc ..&lt;/li&gt;
+  &lt;li&gt;Some &lt;strong&gt;componential tasks&lt;/strong&gt; such as sorting, searching, doing a linear algebra algorithm with &lt;code&gt;O(N^2)&lt;/code&gt; complexity, etc. through a great amount of data.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;introducing-nodejs-workers-threads&quot;&gt;Introducing Node.js Workers Threads:&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://nodejs.org/en/blog/release/v12.11.0/&quot;&gt;Node.js v12.11.0&lt;/a&gt; has stabilized the &lt;a href=&quot;https://nodejs.org/docs/latest-v12.x/api/worker_threads.html&quot;&gt;worker_threads&lt;/a&gt; module after it has been experimental for the last two versions.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Workers (threads) are useful for performing CPU-intensive JavaScript operations. They will not help much with I/O-intensive work. Node.js’s built-in asynchronous I/O operations are more efficient than Workers can be. — &lt;a href=&quot;https://nodejs.org/docs/latest-v12.x/api/worker_threads.html&quot;&gt;Node.js Documentation&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Let’s start with a simple example from the Node.js documentation to demonstrate how we can create Workers threads:&lt;/p&gt;
+
+&lt;pre class=&quot;prettyprint&quot;&gt;
+    &lt;code class=&quot;language-js&quot;&gt;
+      const { Worker, isMainThread } = require('worker_threads');
+      if (isMainThread) {
+        console.log('Inside Main Thread!');
+
+        // This re-loads the current file inside a Worker instance.
+        new Worker(__filename);
+      } else {
+        console.log('Inside Worker Thread!');
+        console.log(isMainThread);  // Prints 'false'.
+      }
+    &lt;/code&gt;
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;how-workers-threads-can-communicate-with-their-parent-thread&quot;&gt;How Workers threads can communicate with their parent thread?&lt;/h3&gt;
+
+&lt;p&gt;The &lt;a href=&quot;https://nodejs.org/docs/latest-v12.x/api/worker_threads.html#worker_threads_event_message&quot;&gt;&lt;code&gt;message&lt;/code&gt;&lt;/a&gt; event is emitted for any incoming message, containing the input of &lt;a href=&quot;https://nodejs.org/docs/latest-v12.x/api/worker_threads.html#worker_threads_port_postmessage_value_transferlist&quot;&gt;&lt;code&gt;port.postMessage()&lt;/code&gt;&lt;/a&gt; which used to send a JavaScript value to the receiving side of this channel.&lt;/p&gt;
+
+&lt;p&gt;Let’s see an example:&lt;/p&gt;
+
+&lt;pre class=&quot;prettyprint&quot;&gt;
+    &lt;code class=&quot;language-js&quot;&gt;
+      const { Worker, isMainThread, parentPort } = require('worker_threads');
+      if (isMainThread) {
+        const worker = new Worker(__filename);
+
+        // Receive messages from the worker thread
+        worker.once('message', (message) =&amp;gt; {
+          console.log(message + ' received from the worker thread!');
+        });
+
+        // Send a ping message to the spawned worker thread
+        worker.postMessage('ping');
+      } else {
+        // When a ping message received, send a pong message back.
+        parentPort.once('message', (message) =&amp;gt; {
+          console.log(message + ' received from the parent thread!');
+          parentPort.postMessage('pong');
+        });
+      }
+    &lt;/code&gt;
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;Internally, a &lt;a href=&quot;https://nodejs.org/docs/latest-v12.x/api/worker_threads.html#worker_threads_class_worker&quot;&gt;&lt;code&gt;Worker&lt;/code&gt;&lt;/a&gt; has a built-in pair of &lt;a href=&quot;https://nodejs.org/docs/latest-v12.x/api/worker_threads.html#worker_threads_class_messageport&quot;&gt;&lt;code&gt;worker.MessagePorts&lt;/code&gt;&lt;/a&gt; that are already associated with each other when the &lt;a href=&quot;https://nodejs.org/docs/latest-v12.x/api/worker_threads.html#worker_threads_class_worker&quot;&gt;&lt;code&gt;Worker&lt;/code&gt;&lt;/a&gt; is created. However, creating a custom messaging channel is encouraged over using the default global channel because it facilitates separation of concerns.&lt;/p&gt;
+
+&lt;p&gt;Here is another example from the Node.js documentation that demonstrates creating a &lt;a href=&quot;https://nodejs.org/docs/latest-v12.x/api/worker_threads.html#worker_threads_class_messagechannel&quot;&gt;&lt;code&gt;worker.MessageChannel&lt;/code&gt;&lt;/a&gt; object to be used as the underlying communication channel between the two threads:&lt;/p&gt;
+
+&lt;pre class=&quot;prettyprint&quot;&gt;
+    &lt;code class=&quot;language-js&quot;&gt;
+      const assert = require('assert');
+      const { Worker, MessageChannel, MessagePort,
+        isMainThread, parentPort } = require('worker_threads');
+      if (isMainThread) {
+        const worker = new Worker(__filename);
+
+        // Create a channel in which further messages will be sent
+        const subChannel = new MessageChannel();
+
+        // Send it through the pre-existing global channel
+        worker.postMessage({ hereIsYourPort: subChannel.port1 }, [subChannel.port1]);
+
+        // Receive messages from the worker thread on the custom channel
+        subChannel.port2.on('message', (value) =&amp;gt; {
+          console.log('received:', value);
+        });
+      } else {
+        // Receive the custom channel info from the parent thread
+        parentPort.once('message', (value) =&amp;gt; {
+          assert(value.hereIsYourPort instanceof MessagePort);
+
+          // Send message to the parent thread through the channel
+          value.hereIsYourPort.postMessage('the worker sent this');
+          value.hereIsYourPort.close();
+        });
+      }
+    &lt;/code&gt;
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;note-that-each-worker-thread-has-three-different-std-channels&quot;&gt;Note that each Worker thread has three different std channels:&lt;/h3&gt;
+
+&lt;p&gt;You can configure &lt;a href=&quot;https://nodejs.org/docs/latest-v12.x/api/process.html#process_process_stderr&quot;&gt;&lt;code&gt;process.stderr&lt;/code&gt;&lt;/a&gt; and &lt;a href=&quot;https://nodejs.org/docs/latest-v12.x/api/process.html#process_process_stdout&quot;&gt;&lt;code&gt;process.stdout&lt;/code&gt;&lt;/a&gt; to use synchronous writes to a file which leads to avoiding problems such as the unexpectedly interleaved output written with &lt;code&gt;console.log()&lt;/code&gt; or &lt;code&gt;console.error()&lt;/code&gt;, or not written at all if &lt;code&gt;process.exit()&lt;/code&gt; is called before an asynchronous write completes.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://nodejs.org/docs/latest-v12.x/api/worker_threads.html#worker_threads_worker_stderr&quot;&gt;&lt;code&gt;worker.stderr&lt;/code&gt;&lt;/a&gt;: If &lt;code&gt;stderr: true&lt;/code&gt; was not passed to the Worker constructor, then data will be piped to the parent thread’s &lt;a href=&quot;https://nodejs.org/docs/latest-v12.x/api/process.html#process_process_stderr&quot;&gt;&lt;code&gt;process.stderr&lt;/code&gt;&lt;/a&gt; &lt;a href=&quot;https://nodejs.org/docs/latest-v12.x/api/stream.html#stream_duplex_and_transform_streams&quot;&gt;Duplex&lt;/a&gt; stream.&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://nodejs.org/docs/latest-v12.x/api/worker_threads.html#worker_threads_worker_stdin&quot;&gt;&lt;code&gt;worker.stdin&lt;/code&gt;&lt;/a&gt;: If &lt;code&gt;stdin: true&lt;/code&gt; was passed to the Worker constructor, then data written to this stream will be made available in the worker thread as &lt;a href=&quot;https://nodejs.org/docs/latest-v12.x/api/process.html#process_process_stdin&quot;&gt;&lt;code&gt;process.stdin&lt;/code&gt;&lt;/a&gt;.&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://nodejs.org/docs/latest-v12.x/api/worker_threads.html#worker_threads_worker_stdout&quot;&gt;&lt;code&gt;worker.stdout&lt;/code&gt;&lt;/a&gt;: If &lt;code&gt;stdout: true&lt;/code&gt; was not passed to the Worker constructor, then data will be piped to the parent thread’s &lt;a href=&quot;https://nodejs.org/docs/latest-v12.x/api/process.html#process_process_stdout&quot;&gt;&lt;code&gt;process.stdout&lt;/code&gt;&lt;/a&gt; &lt;a href=&quot;https://nodejs.org/docs/latest-v12.x/api/stream.html#stream_duplex_and_transform_streams&quot;&gt;Duplex&lt;/a&gt; stream.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;lets-solve-the-problem-weve-faced-earlier&quot;&gt;Let’s solve the problem we’ve faced earlier:&lt;/h3&gt;
+
+&lt;p&gt;We will spawn a worker thread to do the heavy task of hashing the array’s elements and when it finishes execution, it will send the hashed array back to the main thread.&lt;/p&gt;
+
+&lt;pre class=&quot;prettyprint&quot;&gt;
+    &lt;code class=&quot;language-js&quot;&gt;
+      // server.js
+      const { Worker } = require('worker_threads');
+      app.get('/hash-array', (req, res) =&amp;gt; {
+        const originalArray = req.body.array; // Large array
+
+        // Create a worker thread and pass to it the originalArray
+        const worker = new Worker('./worker.js', {
+            workerData: originalArray
+        });
+
+        // Receive messages from the worker thread
+        worker.once('message', (hashedArray) =&amp;gt; {
+          console.log('Received the hashedArray from the worker thread!');
+
+          // Do anything with the received hashedArray
+          ...
+        });
+      });
+      ...
+    &lt;/code&gt;
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;And in the same folder let’s create a worker.js file to write the Worker logic on it:&lt;/p&gt;
+
+&lt;pre class=&quot;prettyprint&quot;&gt;
+    &lt;code class=&quot;language-js&quot;&gt;
+        // worker.js
+        const { parentPort, workerData } = require('worker_threads');
+        const crypto = require('crypto');
+        const array = workerData;
+        const hashedArray = [];
+        // Perform the CPU-intensive task here
+        for (const element of array) {
+        const hash = crypto.createHmac('sha256', 'secret')
+            .update(element)
+            .digest('hex');
+
+        hashedArray.push(hash);
+        }
+        // Send the hashedArray to the parent thread
+        parentPort.postMessage(hashedArray);
+        process.exit()
+    &lt;/code&gt;
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;By doing so we avoid blocking the Event Loop, so it can serve other clients requests which in turn improves our application performance.&lt;/p&gt;
+
+&lt;h3 id=&quot;conclusion&quot;&gt;Conclusion:&lt;/h3&gt;
+
+&lt;p&gt;Performing the &lt;strong&gt;CPU-intensive synchronous&lt;/strong&gt; tasks in worker threads and delegating only the &lt;strong&gt;I/O-intensive asynchronous&lt;/strong&gt; tasks to the event-loop can dramatically improve the performance of our Node.js applications.&lt;/p&gt;
+
+&lt;p&gt;Worker threads have isolated contexts, so we don’t have to worry about concurrency problems of the multithreading paradigm! However, worker threads can exchange information with their parent thread using a message passing mechanism which makes the communication a lot simpler.&lt;/p&gt;
+
+&lt;p&gt;You can find this article @ &lt;a href=&quot;https://medium.com/@mohllal/node-js-multithreading-a5cd74958a67&quot;&gt;Medium&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;reference&quot;&gt;Reference:&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://www.ducons.com/blog/tests-and-thoughts-on-asynchronous-io-vs-multithreading&quot;&gt;Tests and thoughts on asynchronous IO vs. multithreading&lt;/a&gt;.&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://www.vogella.com/tutorials/JavaConcurrency/article.html&quot;&gt;Java concurrency (multi-threading)&lt;/a&gt;.&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://nodejs.org/docs/latest-v12.x/api/worker_threads.html&quot;&gt;Node.js Worker Threads API&lt;/a&gt;.&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://nodejs.org/en/docs/guides/dont-block-the-event-loop/&quot;&gt;Don’t Block the Event Loop (or the Worker Pool)&lt;/a&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+        <pubDate>Sun, 13 Oct 2019 20:00:00 +0200</pubDate>
+        <link>https://mohllal.github.io/blog/2019/nodejs-multithreading/</link>
+        <guid isPermaLink="true">https://mohllal.github.io/blog/2019/nodejs-multithreading/</guid>
+        
+        <category>nodejs</category>
+        
+        <category>multithreading</category>
+        
+        <category>worker_threads</category>
+        
+        <category>asynchronous</category>
+        
+        
+        <category>nodejs</category>
+        
+      </item>
+    
+  </channel>
+</rss>
