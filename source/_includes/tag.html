@@ -1,0 +1,24 @@
+<div class="tag card">
+  <div class="tag-content">
+    <header class="tag-header">
+      <span id="{{ tag[0] }}">
+        #{{ tag[0] }}
+      </span>
+    </header>
+    <ul class="tag-posts-list">
+      {% for post in tag[1] %}
+      {% if post.title != null %}
+      <li>
+        {% if post.link %}
+        <a href="{{ post.link }}">
+        {% else %}
+        <a href="{{ site.baseurl }}{{ post.url }}">
+        {% endif %}
+        {{ post.title }}
+        </a> - <time>{{ post.date | date: "%Y-%m-%d" }}</time>
+      </li>
+      {% endif %}
+      {% endfor %}
+    </ul>
+  </div>
+</div>

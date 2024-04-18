@@ -1,0 +1,65 @@
+// Tags
+
+.tag
+  &-header
+    margin-bottom: $base-spacing
+
+  &-title
+    font-size: rem(20)
+    margin-bottom: 0
+    line-height: 1.5em
+
+  @extend .card
+
+.tags-list
+  .tag
+    &-content
+      +media($tablet-small)
+        display: table-cell
+        vertical-align: middle
+
+      +media($tablet-small)
+        padding: 0 0 0 $base-spacing
+
+.tags-label-list > .label
+  > li:before
+    content: ""
+
+  > li
+    margin: 0
+    font-size: $base-font-size
+    font-weight: 300
+    display: inline
+    font-weight: 300
+
+    > a
+      display: inline-block
+      margin: 1px
+      color: $tag-index-label-color
+      background-color: #f1eff0
+      border-radius: 25px
+
+      span
+        float: left
+        padding: 5px 10px
+
+        &.count
+          background-color: $tag-index-count-background-color
+          border-radius: 0 25px 25px 0
+
+.tag-posts-list
+  margin: 0
+  list-style-type: none
+  li
+    text-indent: -5px
+  li:before
+    content: "-"
+    text-indent: -5px
+
+  .tag
+    a
+      color: $primary-color
+    time
+      font-size: $base-font-size
+      font-weight: 300
+      margin-left: 3px

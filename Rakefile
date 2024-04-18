@@ -6,8 +6,12 @@ require "jekyll"
 require "bourbon"
 
 # Change your GitHub reponame
-GITHUB_REPONAME = "nandomoreirame/end2end"
+GITHUB_REPONAME = "mohllal/mohllal.github.io"
 GITHUB_REPO_BRANCH = "gh-pages"
+
+# Configure Git email and name
+GIT_EMAIL = "kareem.mohllal@gmail.com"
+GIT_NAME = "Kareem Mohllal"
 
 SOURCE = "source/"
 DEST = "_site"
@@ -39,6 +43,8 @@ task :publish => [:generate] do
     Dir.chdir tmp
 
     system "git init"
+    system "git config user.email #{GIT_EMAIL}"
+    system "git config user.name #{GIT_NAME}"
     system "git checkout --orphan #{GITHUB_REPO_BRANCH}"
     system "git add ."
     message = "Site updated at #{Time.now.utc}"
