@@ -78,7 +78,7 @@ app.get('/hash-array', (req, res) => {
 ...
 ```
 
------
+---
 
 In the above example, we have a block of code that takes a lot of computational time. Since Node.js runs callbacks registered for events in the Event Loop, this callback code will make the **Event Loop thread blocked** and unable to handle requests from other clients until it finishes its execution.
 
@@ -100,19 +100,19 @@ And here are some other examples of synchronous CPU-intensive tasks:
 Let’s start with a simple example from the Node.js documentation to demonstrate how we can create Workers threads:
 
 ```javascript
-const { Worker, isMainThread } = require('worker_threads');
+const { Worker, isMainThread } = require("worker_threads");
 if (isMainThread) {
-  console.log('Inside Main Thread!');
+  console.log("Inside Main Thread!");
 
   // This re-loads the current file inside a Worker instance.
   new Worker(__filename);
 } else {
-  console.log('Inside Worker Thread!');
-  console.log(isMainThread);  // Prints 'false'.
+  console.log("Inside Worker Thread!");
+  console.log(isMainThread); // Prints 'false'.
 }
 ```
 
------
+---
 
 ### How Workers threads can communicate with their parent thread?
 
@@ -121,36 +121,41 @@ The [`message`](https://nodejs.org/docs/latest-v12.x/api/worker_threads.html#wor
 Let’s see an example:
 
 ```javascript
-const { Worker, isMainThread, parentPort } = require('worker_threads');
+const { Worker, isMainThread, parentPort } = require("worker_threads");
 if (isMainThread) {
   const worker = new Worker(__filename);
 
   // Receive messages from the worker thread
-  worker.once('message', (message) => {
-    console.log(message + ' received from the worker thread!');
+  worker.once("message", (message) => {
+    console.log(message + " received from the worker thread!");
   });
 
   // Send a ping message to the spawned worker thread
-  worker.postMessage('ping');
+  worker.postMessage("ping");
 } else {
   // When a ping message received, send a pong message back.
-  parentPort.once('message', (message) => {
-    console.log(message + ' received from the parent thread!');
-    parentPort.postMessage('pong');
+  parentPort.once("message", (message) => {
+    console.log(message + " received from the parent thread!");
+    parentPort.postMessage("pong");
   });
 }
 ```
 
------
+---
 
 Internally, a [`Worker`](https://nodejs.org/docs/latest-v12.x/api/worker_threads.html#worker_threads_class_worker) has a built-in pair of [`worker.MessagePorts`](https://nodejs.org/docs/latest-v12.x/api/worker_threads.html#worker_threads_class_messageport) that are already associated with each other when the [`Worker`](https://nodejs.org/docs/latest-v12.x/api/worker_threads.html#worker_threads_class_worker) is created. However, creating a custom messaging channel is encouraged over using the default global channel because it facilitates separation of concerns.
 
 Here is another example from the Node.js documentation that demonstrates creating a [`worker.MessageChannel`](https://nodejs.org/docs/latest-v12.x/api/worker_threads.html#worker_threads_class_messagechannel) object to be used as the underlying communication channel between the two threads:
 
 ```javascript
-const assert = require('assert');
-const { Worker, MessageChannel, MessagePort,
-  isMainThread, parentPort } = require('worker_threads');
+const assert = require("assert");
+const {
+  Worker,
+  MessageChannel,
+  MessagePort,
+  isMainThread,
+  parentPort,
+} = require("worker_threads");
 if (isMainThread) {
   const worker = new Worker(__filename);
 
@@ -161,22 +166,22 @@ if (isMainThread) {
   worker.postMessage({ hereIsYourPort: subChannel.port1 }, [subChannel.port1]);
 
   // Receive messages from the worker thread on the custom channel
-  subChannel.port2.on('message', (value) => {
-    console.log('received:', value);
+  subChannel.port2.on("message", (value) => {
+    console.log("received:", value);
   });
 } else {
   // Receive the custom channel info from the parent thread
-  parentPort.once('message', (value) => {
+  parentPort.once("message", (value) => {
     assert(value.hereIsYourPort instanceof MessagePort);
 
     // Send message to the parent thread through the channel
-    value.hereIsYourPort.postMessage('the worker sent this');
+    value.hereIsYourPort.postMessage("the worker sent this");
     value.hereIsYourPort.close();
   });
 }
 ```
 
------
+---
 
 ### Note that each Worker thread has three different std channels
 
@@ -212,30 +217,31 @@ app.get('/hash-array', (req, res) => {
 ...
 ```
 
------
+---
 
 And in the same folder let’s create a worker.js file to write the Worker logic on it:
 
 ```javascript
 // worker.js
-const { parentPort, workerData } = require('worker_threads');
-const crypto = require('crypto');
+const { parentPort, workerData } = require("worker_threads");
+const crypto = require("crypto");
 const array = workerData;
 const hashedArray = [];
 // Perform the CPU-intensive task here
 for (const element of array) {
-const hash = crypto.createHmac('sha256', 'secret')
+  const hash = crypto
+    .createHmac("sha256", "secret")
     .update(element)
-    .digest('hex');
+    .digest("hex");
 
-hashedArray.push(hash);
+  hashedArray.push(hash);
 }
 // Send the hashedArray to the parent thread
 parentPort.postMessage(hashedArray);
-process.exit()
+process.exit();
 ```
 
------
+---
 
 By doing so we avoid blocking the Event Loop, so it can serve other clients requests which in turn improves our application performance.
 

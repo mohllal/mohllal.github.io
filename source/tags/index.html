@@ -6,7 +6,7 @@ pagination:
 
 <section class="tags-list">
   {% if site.tags.size == 0 %}
-    <h2>No tags found</h2>
+  <h2>No tags found</h2>
   {% endif %}
 
   <div class="tags-label-list">
@@ -22,7 +22,7 @@ pagination:
     </ul>
 
     {% for tag in site.tags %}
-      {% include tag.html %}
+    {% include tag.html %}
     {% endfor %}
   </div>
 </section>

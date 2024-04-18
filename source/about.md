@@ -8,7 +8,7 @@ A results-oriented, multidisciplinary, committed Software Engineer with a long-s
 
 I deeply believe in the lifelong learning journey and I'm very grateful for the fact that there are yet more things to learn, yet more problems to solve and yet more to build.
 
------
+---
 
 ### Technologies
 
