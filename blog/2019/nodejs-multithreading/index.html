@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Node.js Multithreading!</title>
+<meta name="description" content="Node.js used to be defined as a single-threaded asynchronous event-driven JavaScript runtime.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css">
+
+<link rel="stylesheet" href="/css/main.css">
+<link rel="canonical" href="https://mohllal.github.io/blog/2019/nodejs-multithreading/">
+<link rel="alternate" type="application/rss+xml" title="Kareem Mohllal" href="https://mohllal.github.io/feed.xml" />
+
+<script>
+  (function (i, s, o, g, r, a, m) {
+    i['GoogleAnalyticsObject'] = r; i[r] = i[r] || function () {
+      (i[r].q = i[r].q || []).push(arguments)
+    }, i[r].l = 1 * new Date(); a = s.createElement(o),
+      m = s.getElementsByTagName(o)[0]; a.async = 1; a.src = g; m.parentNode.insertBefore(a, m)
+  })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+  ga('create', 'XX-YYYYYYYY-Z', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+</head>
+
+<body>
+  <header class="site-header">
+  <div class="container">
+    <input type="checkbox" id="toggleNavbar">
+    <h1 class="logo"><a href="/"><span>Kareem Mohllal</span></a></h1>
+    <label for="toggleNavbar" role="button" class="toggle-navbar-button">
+      <i class="icon icon-menu"></i>
+      <i class="icon icon-cross"></i>
+    </label>
+    <nav class="navbar">
+      <ul>
+        <li><a href="/" title="Home">Home</a></li>
+        
+        <li><a href="/about" title="About">About</a></li>
+        
+        <li><a href="/blog" title="Blog">Blog</a></li>
+        
+        <li><a href="/tags" title="Tags">Tags</a></li>
+        
+        <li><a href="/resume/KareemKhaledResume.pdf" title="resume">resume</a></li>
+        <li><a href="/feed.xml" target="_blank"><i class="icon icon-rss"></i></a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+
+<main class="main-container">
+  <div class="container">
+    <article role="article" class="post">
+
+  <div class="card">
+    <header class="post-header">
+      <h1 class="post-title">Node.js Multithreading!</h1>
+      <em class="post-meta">
+        <time>
+          Oct 13, 2019
+        </time>
+      </em>
+
+      <div class="post-tags">
+        
+        <a class="tag-header" href="https://mohllal.github.io/tags#nodejs">
+          #nodejs
+        </a>
+        
+        <a class="tag-header" href="https://mohllal.github.io/tags#multithreading">
+          #multithreading
+        </a>
+        
+        <a class="tag-header" href="https://mohllal.github.io/tags#worker_threads">
+          #worker_threads
+        </a>
+        
+        <a class="tag-header" href="https://mohllal.github.io/tags#asynchronous">
+          #asynchronous
+        </a>
+        
+      </div>
+    </header>
+
+    <div class="post-content">
+      <p>Node.js used to be defined as a <strong>single-threaded asynchronous</strong> event-driven JavaScript runtime.</p>
+
+<p>It was built to be a <strong>non-blocking I/O</strong> JavaScript runtime to build scalable network applications, so it uses the <strong>event-driven</strong> asynchronous paradigm instead of multithreading to achieve this goal.</p>
+
+<p>So basically, what is the difference between multithreading and asynchrony?</p>
+
+<ul>
+  <li><strong>Multithreading</strong>: A single CPU core can handle multiple threads of execution concurrently.</li>
+  <li><strong>Asynchrony</strong>: Make events run separately from the application’s primary thread and notify it via signals when an event is completed or failed.</li>
+</ul>
+
+<!-- markdownlint-disable MD033 -->
+<figure>
+  <img title="Multithreading vs Asynchrony" alt="Multithreading vs Asynchrony" src="../../../images/posts/2019-10-13-nodejs-multithreading/multithreading-vs-asynchrony.png" class="post-image" />
+  <figcaption class="post-image-figcaption">Multithreading vs Asynchrony</figcaption>
+</figure>
+<!-- markdownlint-enable MD033 -->
+
+<h3 id="would-it-be-useful-to-use-the-multithreading-paradigm-in-io-bound-tasks">Would it be useful to use the multithreading paradigm in I/O-bound tasks?</h3>
+
+<p>Well though, for network applications, having threads that are just waiting for an I/O task to complete is not very efficient because <strong>threads are resource consuming</strong>, no matter if they are in a waiting state or if they are active.</p>
+
+<p>Each thread uses a portion of the CPU, and when threads are waiting to perform I/O tasks, they are just wasting CPU time which otherwise would be used by threads that have actual CPU work to perform.</p>
+
+<p>There is also an overhead to the overall application performance caused by the <strong>context switching</strong> done by the CPU when it switches from executing one thread to executing another, the CPU needs to save the local data, application pointer etc. of the current thread, and load the local data, application pointer etc. of the next thread to execute.</p>
+
+<p>And also, since threads can access shared data; This can lead to many <strong>concurrency issues</strong> such as race conditions, deadlocks, and resource starvation.</p>
+
+<p>Event-driven asynchronous I/O reduces the number of concurrent threads by removing the ones that are in a waiting state, which increases the application’s scalability and leads to more simpler application design.</p>
+
+<blockquote>
+  <p>Thread-based networking is relatively inefficient and very difficult to use. Furthermore, users of Node.js are free from worries of dead-locking the process, since there are no locks. Almost no function in Node.js directly performs I/O, so the process never blocks. Because nothing blocks, scalable systems are very reasonable to develop in Node.js. — <a href="https://nodejs.org/en/about/">Node.js Documentation</a></p>
+</blockquote>
+
+<!-- markdownlint-disable MD033 -->
+<figure>
+  <img title="Multithreading Blocking I/O vs Event-Driven Non-Blocking I/O" alt="Multithreading Blocking I/O vs Event-Driven Non-Blocking I/O" src="../../../images/posts/2019-10-13-nodejs-multithreading/blocking-vs-nonblocking.png" class="post-image" />
+  <figcaption class="post-image-figcaption">Multithreading Blocking I/O vs Event-Driven Non-Blocking I/O</figcaption>
+</figure>
+<!-- markdownlint-enable MD033 -->
+
+<h3 id="nodejs-is-using-threads-behind-the-scenes-how">Node.js is using threads behind the scenes! How?</h3>
+
+<p>Node.js has two types of threads:</p>
+
+<ul>
+  <li>The one <strong>Event Loop</strong> thread (aka the main thread).</li>
+  <li>The <strong>Worker Pool</strong> (aka threadpool) threads.</li>
+</ul>
+
+<p>Node.js runs JavaScript code in the Event Loop (initialization and callbacks) which is also responsible for fulfilling non-blocking asynchronous requests like network I/O.</p>
+
+<p>As for Worker Pool threads which are responsible for offloading work for I/O APIs that can’t be done asynchronously at the OS level, as well as some particularly CPU-intensive APIs.</p>
+
+<p>We have no control over Worker Pool threads as they are automatically created and managed using the C library <a href="http://docs.libuv.org/en/v1.x/threadpool.html">libuv</a> on which Node.js was built.</p>
+
+<h3 id="but-what-about-cpu-intensive-tasks-that-cant-be-fulfilled-using-worker-pool-threads">But what about CPU-intensive tasks that can’t be fulfilled using Worker Pool threads?</h3>
+
+<p>What if we have some code that performs some synchronous CPU-intensive stuff such as hashing every element in a very large array using the crypto module?</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">crypto</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'crypto'</span><span class="p">);</span>
+<span class="nx">app</span><span class="p">.</span><span class="kd">get</span><span class="p">(</span><span class="s1">'/hash-array'</span><span class="p">,</span> <span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="kd">const</span> <span class="nx">array</span> <span class="o">=</span> <span class="nx">req</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">array</span><span class="p">;</span> <span class="c1">// Large array</span>
+
+  <span class="c1">// This is a CPU-intensive task</span>
+  <span class="k">for</span> <span class="p">(</span><span class="kd">const</span> <span class="nx">element</span> <span class="k">of</span> <span class="nx">array</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">const</span> <span class="nx">hash</span> <span class="o">=</span> <span class="nx">crypto</span><span class="p">.</span><span class="nx">createHmac</span><span class="p">(</span><span class="s1">'sha256'</span><span class="p">,</span> <span class="s1">'secret'</span><span class="p">)</span>
+      <span class="p">.</span><span class="nx">update</span><span class="p">(</span><span class="nx">element</span><span class="p">)</span>
+      <span class="p">.</span><span class="nx">digest</span><span class="p">(</span><span class="s1">'hex'</span><span class="p">);</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">hash</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">});</span>
+<span class="p">...</span>
+</code></pre></div></div>
+
+<hr />
+
+<p>In the above example, we have a block of code that takes a lot of computational time. Since Node.js runs callbacks registered for events in the Event Loop, this callback code will make the <strong>Event Loop thread blocked</strong> and unable to handle requests from other clients until it finishes its execution.</p>
+
+<blockquote>
+  <p>Because Node handles many clients with few threads, if a thread blocks handling one client’s request, then pending client requests may not get a turn until the thread finishes its callback or task. The fair treatment of clients is thus the responsibility of your application. This means that you shouldn’t do too much work for any client in any single callback or task. — <a href="https://nodejs.org/en/docs/guides/dont-block-the-event-loop/">Node.js Documentation</a></p>
+</blockquote>
+
+<p>And here are some other examples of synchronous CPU-intensive tasks:</p>
+
+<ul>
+  <li><strong>ReDoS</strong> (Regular expression Denial of Service): Using a vulnerable regular expression.</li>
+  <li><strong>JSON DoS</strong> (JSON Denial of Service): Using large JSON objects in <code class="highlighter-rouge">JSON.parse</code> or <code class="highlighter-rouge">JSON.stringify</code>.</li>
+  <li>Some <strong>synchronous Node.js APIs</strong> such as <code class="highlighter-rouge">zlib.inflateSync</code>, <code class="highlighter-rouge">fs.readFileSync</code>, <code class="highlighter-rouge">child.execSync</code>, etc ..</li>
+  <li>Some <strong>componential tasks</strong> such as sorting, searching, doing a linear algebra algorithm with <code class="highlighter-rouge">O(N^2)</code> complexity, etc. through a great amount of data.</li>
+</ul>
+
+<h3 id="introducing-nodejs-workers-threads">Introducing Node.js Workers Threads</h3>
+
+<p><a href="https://nodejs.org/en/blog/release/v12.11.0/">Node.js v12.11.0</a> has stabilized the <a href="https://nodejs.org/docs/latest-v12.x/api/worker_threads.html">worker_threads</a> module after it has been experimental for the last two versions.</p>
+
+<blockquote>
+  <p>Workers (threads) are useful for performing CPU-intensive JavaScript operations. They will not help much with I/O-intensive work. Node.js’s built-in asynchronous I/O operations are more efficient than Workers can be. — <a href="https://nodejs.org/docs/latest-v12.x/api/worker_threads.html">Node.js Documentation</a></p>
+</blockquote>
+
+<p>Let’s start with a simple example from the Node.js documentation to demonstrate how we can create Workers threads:</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="p">{</span> <span class="nx">Worker</span><span class="p">,</span> <span class="nx">isMainThread</span> <span class="p">}</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s2">"worker_threads"</span><span class="p">);</span>
+<span class="k">if</span> <span class="p">(</span><span class="nx">isMainThread</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">"Inside Main Thread!"</span><span class="p">);</span>
+
+  <span class="c1">// This re-loads the current file inside a Worker instance.</span>
+  <span class="k">new</span> <span class="nx">Worker</span><span class="p">(</span><span class="nx">__filename</span><span class="p">);</span>
+<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">"Inside Worker Thread!"</span><span class="p">);</span>
+  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">isMainThread</span><span class="p">);</span> <span class="c1">// Prints 'false'.</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<hr />
+
+<h3 id="how-workers-threads-can-communicate-with-their-parent-thread">How Workers threads can communicate with their parent thread?</h3>
+
+<p>The <a href="https://nodejs.org/docs/latest-v12.x/api/worker_threads.html#worker_threads_event_message"><code class="highlighter-rouge">message</code></a> event is emitted for any incoming message, containing the input of <a href="https://nodejs.org/docs/latest-v12.x/api/worker_threads.html#worker_threads_port_postmessage_value_transferlist"><code class="highlighter-rouge">port.postMessage()</code></a> which used to send a JavaScript value to the receiving side of this channel.</p>
+
+<p>Let’s see an example:</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="p">{</span> <span class="nx">Worker</span><span class="p">,</span> <span class="nx">isMainThread</span><span class="p">,</span> <span class="nx">parentPort</span> <span class="p">}</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s2">"worker_threads"</span><span class="p">);</span>
+<span class="k">if</span> <span class="p">(</span><span class="nx">isMainThread</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kd">const</span> <span class="nx">worker</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Worker</span><span class="p">(</span><span class="nx">__filename</span><span class="p">);</span>
+
+  <span class="c1">// Receive messages from the worker thread</span>
+  <span class="nx">worker</span><span class="p">.</span><span class="nx">once</span><span class="p">(</span><span class="s2">"message"</span><span class="p">,</span> <span class="p">(</span><span class="nx">message</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">message</span> <span class="o">+</span> <span class="s2">" received from the worker thread!"</span><span class="p">);</span>
+  <span class="p">});</span>
+
+  <span class="c1">// Send a ping message to the spawned worker thread</span>
+  <span class="nx">worker</span><span class="p">.</span><span class="nx">postMessage</span><span class="p">(</span><span class="s2">"ping"</span><span class="p">);</span>
+<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+  <span class="c1">// When a ping message received, send a pong message back.</span>
+  <span class="nx">parentPort</span><span class="p">.</span><span class="nx">once</span><span class="p">(</span><span class="s2">"message"</span><span class="p">,</span> <span class="p">(</span><span class="nx">message</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">message</span> <span class="o">+</span> <span class="s2">" received from the parent thread!"</span><span class="p">);</span>
+    <span class="nx">parentPort</span><span class="p">.</span><span class="nx">postMessage</span><span class="p">(</span><span class="s2">"pong"</span><span class="p">);</span>
+  <span class="p">});</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<hr />
+
+<p>Internally, a <a href="https://nodejs.org/docs/latest-v12.x/api/worker_threads.html#worker_threads_class_worker"><code class="highlighter-rouge">Worker</code></a> has a built-in pair of <a href="https://nodejs.org/docs/latest-v12.x/api/worker_threads.html#worker_threads_class_messageport"><code class="highlighter-rouge">worker.MessagePorts</code></a> that are already associated with each other when the <a href="https://nodejs.org/docs/latest-v12.x/api/worker_threads.html#worker_threads_class_worker"><code class="highlighter-rouge">Worker</code></a> is created. However, creating a custom messaging channel is encouraged over using the default global channel because it facilitates separation of concerns.</p>
+
+<p>Here is another example from the Node.js documentation that demonstrates creating a <a href="https://nodejs.org/docs/latest-v12.x/api/worker_threads.html#worker_threads_class_messagechannel"><code class="highlighter-rouge">worker.MessageChannel</code></a> object to be used as the underlying communication channel between the two threads:</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">assert</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s2">"assert"</span><span class="p">);</span>
+<span class="kd">const</span> <span class="p">{</span>
+  <span class="nx">Worker</span><span class="p">,</span>
+  <span class="nx">MessageChannel</span><span class="p">,</span>
+  <span class="nx">MessagePort</span><span class="p">,</span>
+  <span class="nx">isMainThread</span><span class="p">,</span>
+  <span class="nx">parentPort</span><span class="p">,</span>
+<span class="p">}</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s2">"worker_threads"</span><span class="p">);</span>
+<span class="k">if</span> <span class="p">(</span><span class="nx">isMainThread</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kd">const</span> <span class="nx">worker</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Worker</span><span class="p">(</span><span class="nx">__filename</span><span class="p">);</span>
+
+  <span class="c1">// Create a channel in which further messages will be sent</span>
+  <span class="kd">const</span> <span class="nx">subChannel</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">MessageChannel</span><span class="p">();</span>
+
+  <span class="c1">// Send it through the pre-existing global channel</span>
+  <span class="nx">worker</span><span class="p">.</span><span class="nx">postMessage</span><span class="p">({</span> <span class="na">hereIsYourPort</span><span class="p">:</span> <span class="nx">subChannel</span><span class="p">.</span><span class="nx">port1</span> <span class="p">},</span> <span class="p">[</span><span class="nx">subChannel</span><span class="p">.</span><span class="nx">port1</span><span class="p">]);</span>
+
+  <span class="c1">// Receive messages from the worker thread on the custom channel</span>
+  <span class="nx">subChannel</span><span class="p">.</span><span class="nx">port2</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s2">"message"</span><span class="p">,</span> <span class="p">(</span><span class="nx">value</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">"received:"</span><span class="p">,</span> <span class="nx">value</span><span class="p">);</span>
+  <span class="p">});</span>
+<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+  <span class="c1">// Receive the custom channel info from the parent thread</span>
+  <span class="nx">parentPort</span><span class="p">.</span><span class="nx">once</span><span class="p">(</span><span class="s2">"message"</span><span class="p">,</span> <span class="p">(</span><span class="nx">value</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="nx">assert</span><span class="p">(</span><span class="nx">value</span><span class="p">.</span><span class="nx">hereIsYourPort</span> <span class="k">instanceof</span> <span class="nx">MessagePort</span><span class="p">);</span>
+
+    <span class="c1">// Send message to the parent thread through the channel</span>
+    <span class="nx">value</span><span class="p">.</span><span class="nx">hereIsYourPort</span><span class="p">.</span><span class="nx">postMessage</span><span class="p">(</span><span class="s2">"the worker sent this"</span><span class="p">);</span>
+    <span class="nx">value</span><span class="p">.</span><span class="nx">hereIsYourPort</span><span class="p">.</span><span class="nx">close</span><span class="p">();</span>
+  <span class="p">});</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<hr />
+
+<h3 id="note-that-each-worker-thread-has-three-different-std-channels">Note that each Worker thread has three different std channels</h3>
+
+<p>You can configure <a href="https://nodejs.org/docs/latest-v12.x/api/process.html#process_process_stderr"><code class="highlighter-rouge">process.stderr</code></a> and <a href="https://nodejs.org/docs/latest-v12.x/api/process.html#process_process_stdout"><code class="highlighter-rouge">process.stdout</code></a> to use synchronous writes to a file which leads to avoiding problems such as the unexpectedly interleaved output written with <code class="highlighter-rouge">console.log()</code> or <code class="highlighter-rouge">console.error()</code>, or not written at all if <code class="highlighter-rouge">process.exit()</code> is called before an asynchronous write completes.</p>
+
+<ul>
+  <li><a href="https://nodejs.org/docs/latest-v12.x/api/worker_threads.html#worker_threads_worker_stderr"><code class="highlighter-rouge">worker.stderr</code></a>: If <code class="highlighter-rouge">stderr: true</code> was not passed to the Worker constructor, then data will be piped to the parent thread’s <a href="https://nodejs.org/docs/latest-v12.x/api/process.html#process_process_stderr"><code class="highlighter-rouge">process.stderr</code></a> <a href="https://nodejs.org/docs/latest-v12.x/api/stream.html#stream_duplex_and_transform_streams">Duplex</a> stream.</li>
+  <li><a href="https://nodejs.org/docs/latest-v12.x/api/worker_threads.html#worker_threads_worker_stdin"><code class="highlighter-rouge">worker.stdin</code></a>: If <code class="highlighter-rouge">stdin: true</code> was passed to the Worker constructor, then data written to this stream will be made available in the worker thread as <a href="https://nodejs.org/docs/latest-v12.x/api/process.html#process_process_stdin"><code class="highlighter-rouge">process.stdin</code></a>.</li>
+  <li><a href="https://nodejs.org/docs/latest-v12.x/api/worker_threads.html#worker_threads_worker_stdout"><code class="highlighter-rouge">worker.stdout</code></a>: If <code class="highlighter-rouge">stdout: true</code> was not passed to the Worker constructor, then data will be piped to the parent thread’s <a href="https://nodejs.org/docs/latest-v12.x/api/process.html#process_process_stdout"><code class="highlighter-rouge">process.stdout</code></a> <a href="https://nodejs.org/docs/latest-v12.x/api/stream.html#stream_duplex_and_transform_streams">Duplex</a> stream.</li>
+</ul>
+
+<h3 id="lets-solve-the-problem-weve-faced-earlier">Let’s solve the problem we’ve faced earlier:</h3>
+
+<p>We will spawn a worker thread to do the heavy task of hashing the array’s elements and when it finishes execution, it will send the hashed array back to the main thread.</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// server.js</span>
+<span class="kd">const</span> <span class="p">{</span> <span class="nx">Worker</span> <span class="p">}</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'worker_threads'</span><span class="p">);</span>
+<span class="nx">app</span><span class="p">.</span><span class="kd">get</span><span class="p">(</span><span class="s1">'/hash-array'</span><span class="p">,</span> <span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="kd">const</span> <span class="nx">originalArray</span> <span class="o">=</span> <span class="nx">req</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">array</span><span class="p">;</span> <span class="c1">// Large array</span>
+
+  <span class="c1">// Create a worker thread and pass to it the originalArray</span>
+  <span class="kd">const</span> <span class="nx">worker</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Worker</span><span class="p">(</span><span class="s1">'./worker.js'</span><span class="p">,</span> <span class="p">{</span>
+      <span class="na">workerData</span><span class="p">:</span> <span class="nx">originalArray</span>
+  <span class="p">});</span>
+
+  <span class="c1">// Receive messages from the worker thread</span>
+  <span class="nx">worker</span><span class="p">.</span><span class="nx">once</span><span class="p">(</span><span class="s1">'message'</span><span class="p">,</span> <span class="p">(</span><span class="nx">hashedArray</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'Received the hashedArray from the worker thread!'</span><span class="p">);</span>
+
+    <span class="c1">// Do anything with the received hashedArray</span>
+    <span class="p">...</span>
+  <span class="p">});</span>
+<span class="p">});</span>
+<span class="p">...</span>
+</code></pre></div></div>
+
+<hr />
+
+<p>And in the same folder let’s create a worker.js file to write the Worker logic on it:</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// worker.js</span>
+<span class="kd">const</span> <span class="p">{</span> <span class="nx">parentPort</span><span class="p">,</span> <span class="nx">workerData</span> <span class="p">}</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s2">"worker_threads"</span><span class="p">);</span>
+<span class="kd">const</span> <span class="nx">crypto</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s2">"crypto"</span><span class="p">);</span>
+<span class="kd">const</span> <span class="nx">array</span> <span class="o">=</span> <span class="nx">workerData</span><span class="p">;</span>
+<span class="kd">const</span> <span class="nx">hashedArray</span> <span class="o">=</span> <span class="p">[];</span>
+<span class="c1">// Perform the CPU-intensive task here</span>
+<span class="k">for</span> <span class="p">(</span><span class="kd">const</span> <span class="nx">element</span> <span class="k">of</span> <span class="nx">array</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kd">const</span> <span class="nx">hash</span> <span class="o">=</span> <span class="nx">crypto</span>
+    <span class="p">.</span><span class="nx">createHmac</span><span class="p">(</span><span class="s2">"sha256"</span><span class="p">,</span> <span class="s2">"secret"</span><span class="p">)</span>
+    <span class="p">.</span><span class="nx">update</span><span class="p">(</span><span class="nx">element</span><span class="p">)</span>
+    <span class="p">.</span><span class="nx">digest</span><span class="p">(</span><span class="s2">"hex"</span><span class="p">);</span>
+
+  <span class="nx">hashedArray</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">hash</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="c1">// Send the hashedArray to the parent thread</span>
+<span class="nx">parentPort</span><span class="p">.</span><span class="nx">postMessage</span><span class="p">(</span><span class="nx">hashedArray</span><span class="p">);</span>
+<span class="nx">process</span><span class="p">.</span><span class="nx">exit</span><span class="p">();</span>
+</code></pre></div></div>
+
+<hr />
+
+<p>By doing so we avoid blocking the Event Loop, so it can serve other clients requests which in turn improves our application performance.</p>
+
+<h3 id="conclusion">Conclusion</h3>
+
+<p>Performing the <strong>CPU-intensive synchronous</strong> tasks in worker threads and delegating only the <strong>I/O-intensive asynchronous</strong> tasks to the event-loop can dramatically improve the performance of our Node.js applications.</p>
+
+<p>Worker threads have isolated contexts, so we don’t have to worry about concurrency problems of the multithreading paradigm! However, worker threads can exchange information with their parent thread using a message passing mechanism which makes the communication a lot simpler.</p>
+
+<p>You can find this article @ <a href="https://medium.com/@mohllal/node-js-multithreading-a5cd74958a67">Medium</a></p>
+
+<h3 id="references">References</h3>
+
+<ul>
+  <li><a href="https://www.ducons.com/blog/tests-and-thoughts-on-asynchronous-io-vs-multithreading">Tests and thoughts on asynchronous IO vs. multithreading</a>.</li>
+  <li><a href="https://www.vogella.com/tutorials/JavaConcurrency/article.html">Java concurrency (multi-threading)</a>.</li>
+  <li><a href="https://nodejs.org/docs/latest-v12.x/api/worker_threads.html">Node.js Worker Threads API</a>.</li>
+  <li><a href="https://nodejs.org/en/docs/guides/dont-block-the-event-loop/">Don’t Block the Event Loop (or the Worker Pool)</a>.</li>
+</ul>
+
+    </div>
+
+    
+<hr>
+
+<aside id="comments" class="disqus">
+  <h3><i class="icon icon-comments-o"></i> Comments</h3>
+  <div id="disqus_thread"></div>
+  <script>
+    var disqus_config = function () {
+      this.page.url = 'https://mohllal.github.io/blog/2019/nodejs-multithreading/';
+      this.page.identifier = '/blog/2019/nodejs-multithreading';
+    };
+    (function () {
+      var d = document,
+        s = d.createElement('script');
+      s.src = '//mohllal-github-io.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', +new Date());
+      (d.head || d.body).appendChild(s);
+    })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments
+      powered by Disqus.</a></noscript>
+</aside>
+
+
+  </div>
+
+</article>
+
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <ul class="social">
+  <li><a href="https://github.com/mohllal" target="_blank"><i class="icon icon-github"></i></a></li>
+  <li><a href="mailto:kareem.mohllal@gmail.com" target="_blank"><i class="icon icon-mail"></i></a></li>
+  <li><a href="https://linkedin.com/in/mohllal" target="_blank"><i class="icon icon-linkedin"></i></a></li>
+</ul>
+
+    <p class="txt-medium-gray">
+      <small>&copy;2024 All rights reserved. Made with <a href="http://jekyllrb.com/" target="_blank">Jekyll</a> and ♥</small>
+    </p>
+  </div>
+</footer>
+
+
+</body>
+
+</html>

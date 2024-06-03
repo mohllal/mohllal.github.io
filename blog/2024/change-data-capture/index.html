@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Change Data Capture (CDC) with PostgreSQL, Debezium, Kinesis, and EventBridge</title>
+<meta name="description" content="This article explores building a CDC pipeline from start to finish. Initially, I will provide an overview of the CDC pattern, explain the fundamental concept...">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css">
+
+<link rel="stylesheet" href="/css/main.css">
+<link rel="canonical" href="https://mohllal.github.io/blog/2024/change-data-capture/">
+<link rel="alternate" type="application/rss+xml" title="Kareem Mohllal" href="https://mohllal.github.io/feed.xml" />
+
+<script>
+  (function (i, s, o, g, r, a, m) {
+    i['GoogleAnalyticsObject'] = r; i[r] = i[r] || function () {
+      (i[r].q = i[r].q || []).push(arguments)
+    }, i[r].l = 1 * new Date(); a = s.createElement(o),
+      m = s.getElementsByTagName(o)[0]; a.async = 1; a.src = g; m.parentNode.insertBefore(a, m)
+  })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+  ga('create', 'XX-YYYYYYYY-Z', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+</head>
+
+<body>
+  <header class="site-header">
+  <div class="container">
+    <input type="checkbox" id="toggleNavbar">
+    <h1 class="logo"><a href="/"><span>Kareem Mohllal</span></a></h1>
+    <label for="toggleNavbar" role="button" class="toggle-navbar-button">
+      <i class="icon icon-menu"></i>
+      <i class="icon icon-cross"></i>
+    </label>
+    <nav class="navbar">
+      <ul>
+        <li><a href="/" title="Home">Home</a></li>
+        
+        <li><a href="/about" title="About">About</a></li>
+        
+        <li><a href="/blog" title="Blog">Blog</a></li>
+        
+        <li><a href="/tags" title="Tags">Tags</a></li>
+        
+        <li><a href="/resume/KareemKhaledResume.pdf" title="resume">resume</a></li>
+        <li><a href="/feed.xml" target="_blank"><i class="icon icon-rss"></i></a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+
+<main class="main-container">
+  <div class="container">
+    <article role="article" class="post">
+
+  <div class="card">
+    <header class="post-header">
+      <h1 class="post-title">Change Data Capture (CDC) with PostgreSQL, Debezium, Kinesis, and EventBridge</h1>
+      <em class="post-meta">
+        <time>
+          Apr 14, 2024
+        </time>
+      </em>
+
+      <div class="post-tags">
+        
+        <a class="tag-header" href="https://mohllal.github.io/tags#change_data_capture">
+          #change_data_capture
+        </a>
+        
+        <a class="tag-header" href="https://mohllal.github.io/tags#event_driven_architecture">
+          #event_driven_architecture
+        </a>
+        
+        <a class="tag-header" href="https://mohllal.github.io/tags#debezium">
+          #debezium
+        </a>
+        
+      </div>
+    </header>
+
+    <div class="post-content">
+      <p>This article explores building a CDC pipeline from start to finish. Initially, I will provide an overview of the CDC pattern, explain the fundamental concepts behind it, and outline the key components integral to a real-time event-driven CDC system. Subsequently, I will delve into the implementation details, sharing code snippets, practical examples, and more.</p>
+
+<p>The code snippets provided in this article are simplified versions designed for demonstration purposes. For the full, complete versions of the code and additional details, you can find the source code in <a href="https://github.com/mohllal/postgresql-debezium-kinesis-cdc">this repository</a>.</p>
+
+<h2 id="what-is-cdc">What is CDC?</h2>
+
+<p><a href="https://en.wikipedia.org/wiki/Change_data_capture">Change Data Capture (CDC)</a> refers to the process of identifying and capturing changes made to data in a database (through INSERT, UPDATE, DELETE or equivalent operations) and subsequently delivering those changes in real-time to downstream systems.</p>
+
+<p>Initially, CDC gained traction as an alternative approach to cron-based batch data replication, particularly for populating data warehouses in ETL (Extract, Transform, Load) jobs. However, in recent years, CDC has become the standard method for all data replication pipelines primarily because of its real-time nature.</p>
+
+<h3 id="use-cases">Use cases</h3>
+
+<p>Utilizing CDC can benefit in the following use cases:</p>
+
+<ul>
+  <li>Process streams of data in real-time for various applications using event-driven architecture (the main focus of this article).</li>
+  <li>Synchronize data across systems to keep them updated.</li>
+  <li>Replicate data changes for disaster recovery.</li>
+  <li>Automate cache invalidation.</li>
+  <li>Track and report data changes for audit trail and compliance purposes.</li>
+  <li>Optimize ETL jobs by loading only changed data incrementally.</li>
+  <li>Update customer data in real-time in CRM systems.</li>
+  <li>Enhance data consistency across microservices and distributed systems.</li>
+  <li>and more…</li>
+</ul>
+
+<h2 id="how-does-cdc-work">How does CDC work?</h2>
+
+<p>There are several methods for implementing CDC</p>
+
+<h3 id="trigger-based">Trigger-based</h3>
+
+<p>In trigger-based CDC, database triggers are created for each monitored table, which executes custom logic to capture and log the changes into a CDC-specific table which stores information about the changed data, including timestamps and identifiers.</p>
+
+<p>This approach reduces database performance because it requires multiple writes each time a row is updated, inserted, or deleted.</p>
+
+<p>An example of capturing data changes through a database trigger which stores the modified data in a table called <code class="highlighter-rouge">data_change_log</code>.</p>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">-- Create the trigger</span>
+<span class="k">CREATE</span> <span class="k">OR</span> <span class="k">REPLACE</span> <span class="k">FUNCTION</span> <span class="n">customers_trigger_function</span><span class="p">()</span>
+<span class="k">RETURNS</span> <span class="k">TRIGGER</span> <span class="k">AS</span> <span class="err">$$</span>
+<span class="k">BEGIN</span>
+    <span class="k">INSERT</span> <span class="k">INTO</span> <span class="n">data_change_log</span> <span class="p">(</span><span class="k">table_name</span><span class="p">,</span> <span class="k">operation</span><span class="p">,</span> <span class="k">timestamp</span><span class="p">,</span> <span class="k">data</span><span class="p">)</span>
+    <span class="k">VALUES</span> <span class="p">(</span><span class="s1">'customers'</span><span class="p">,</span> <span class="n">TG_OP</span><span class="p">,</span> <span class="n">NOW</span><span class="p">(),</span> <span class="k">NEW</span><span class="p">);</span>
+
+    <span class="k">RETURN</span> <span class="k">NEW</span><span class="p">;</span>
+<span class="k">END</span><span class="p">;</span>
+<span class="err">$$</span> <span class="k">LANGUAGE</span> <span class="n">plpgsql</span><span class="p">;</span>
+
+<span class="c1">-- Attach the trigger function to the table</span>
+<span class="k">CREATE</span> <span class="k">TRIGGER</span> <span class="n">customers_trigger</span>
+<span class="k">AFTER</span> <span class="k">INSERT</span> <span class="k">OR</span> <span class="k">UPDATE</span> <span class="k">OR</span> <span class="k">DELETE</span>
+<span class="k">ON</span> <span class="n">customers</span>
+<span class="k">FOR</span> <span class="k">EACH</span> <span class="k">ROW</span>
+<span class="k">EXECUTE</span> <span class="k">FUNCTION</span> <span class="n">customers_trigger_function</span><span class="p">();</span>
+</code></pre></div></div>
+
+<h3 id="timestamp-based">Timestamp-based</h3>
+
+<p>Timestamp-based CDC involves periodically querying the source database to identify changes since the last capture point (e.g., modified timestamps). This approach relies on comparing data snapshots at different intervals to detect modifications.</p>
+
+<p>This approach adds additional overhead to the database due to frequent querying, and it requires additional logic to ensure that delete operations are properly tracked and replicated to the target.</p>
+
+<p>An example of capturing data changes using the <code class="highlighter-rouge">modified_at</code> timestamp column and a <code class="highlighter-rouge">checkpoints</code> table to track previous capture times.</p>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">CREATE</span> <span class="k">OR</span> <span class="k">REPLACE</span> <span class="k">FUNCTION</span> <span class="n">get_modified_customers_since_last_capture</span><span class="p">()</span>
+<span class="k">RETURNS</span> <span class="k">TABLE</span> <span class="p">(</span><span class="n">id</span> <span class="n">INTEGER</span><span class="p">,</span> <span class="n">name</span> <span class="n">VARCHAR</span><span class="p">(</span><span class="mi">255</span><span class="p">),</span> <span class="n">email</span> <span class="n">VARCHAR</span><span class="p">(</span><span class="mi">255</span><span class="p">),</span> <span class="n">created_at</span> <span class="k">TIMESTAMP</span><span class="p">,</span> <span class="n">modified_at</span> <span class="k">TIMESTAMP</span><span class="p">)</span> <span class="k">AS</span> <span class="err">$$</span>
+<span class="o">#</span><span class="n">variable_conflict</span> <span class="n">use_column</span>
+<span class="k">DECLARE</span>
+    <span class="n">latest_capture_time</span> <span class="k">TIMESTAMP</span><span class="p">;</span>
+<span class="k">BEGIN</span>
+    <span class="c1">-- Fetch the latest capture time from the checkpoints table and store it in the variable</span>
+    <span class="k">SELECT</span> <span class="n">last_capture_timestamp</span> <span class="k">INTO</span> <span class="n">latest_capture_time</span>
+    <span class="k">FROM</span> <span class="n">checkpoints</span>
+    <span class="k">WHERE</span> <span class="k">table_name</span> <span class="o">=</span> <span class="s1">'customers'</span><span class="p">;</span>
+
+    <span class="c1">-- Capture changes in the 'customers' table since the latest capture change</span>
+    <span class="k">RETURN</span> <span class="n">QUERY</span>
+    <span class="k">SELECT</span> <span class="n">id</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">email</span><span class="p">,</span> <span class="n">created_at</span><span class="p">,</span> <span class="n">modified_at</span>
+    <span class="k">FROM</span> <span class="n">customers</span>
+    <span class="k">WHERE</span> <span class="n">modified_at</span> <span class="o">&gt;</span> <span class="n">latest_capture_time</span><span class="p">;</span>
+<span class="k">END</span><span class="p">;</span>
+<span class="err">$$</span> <span class="k">LANGUAGE</span> <span class="n">plpgsql</span><span class="p">;</span>
+
+<span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">get_modified_customers_since_last_capture</span><span class="p">();</span>
+</code></pre></div></div>
+
+<h3 id="log-based">Log-based</h3>
+
+<p>Log-based CDC uses transaction logs or transactional journals provided by the database management system (DBMS) which contain a record of all changes made to the database.</p>
+
+<p>It reads the transaction logs of the source database, parsing and interpreting the log entries to identify changes. It then extracts relevant information from the logs, such as the affected data and the type of operation performed, to replicate the changes to the target system.</p>
+
+<p>This approach is widely adopted due to its minimal impact on the database. It doesn’t need additional queries for each transaction. However, parsing the transaction logs of a database can pose challenges at times.</p>
+
+<p>An example of using <a href="https://www.postgresql.org/docs/10/logicaldecoding.html">PostgreSQL logical decoding</a> mechanism that relies on <a href="https://www.postgresql.org/docs/current/wal-intro.html">Write-Ahead Logging (WAL)</a> to capture the logical changes made to the data.</p>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">-- Create a slot named 'test_slot' using the output plugin 'test_decoding'</span>
+<span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">pg_create_logical_replication_slot</span><span class="p">(</span><span class="s1">'test_slot'</span><span class="p">,</span> <span class="s1">'test_decoding'</span><span class="p">);</span>
+
+<span class="c1">-- Insert rows in the customers table</span>
+<span class="k">INSERT</span> <span class="k">INTO</span> <span class="n">customers</span>
+<span class="k">VALUES</span> <span class="p">(</span><span class="k">DEFAULT</span><span class="p">,</span> <span class="s1">'Oliver Alsop'</span><span class="p">,</span> <span class="s1">'oliver@mail.com'</span><span class="p">,</span> <span class="k">DEFAULT</span><span class="p">,</span> <span class="k">DEFAULT</span><span class="p">),</span>
+       <span class="p">(</span><span class="k">DEFAULT</span><span class="p">,</span> <span class="s1">'Trevor Baker'</span><span class="p">,</span> <span class="s1">'trevor@mail.com'</span><span class="p">,</span> <span class="k">DEFAULT</span><span class="p">,</span> <span class="k">DEFAULT</span><span class="p">);</span>
+
+<span class="c1">-- Fetch changes from the 'test_slot' logical replication slot</span>
+<span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">pg_logical_slot_get_changes</span><span class="p">(</span><span class="s1">'test_slot'</span><span class="p">,</span> <span class="k">NULL</span><span class="p">,</span> <span class="k">NULL</span><span class="p">);</span>
+
+   <span class="n">lsn</span>    <span class="o">|</span>  <span class="n">xid</span>  <span class="o">|</span>                          <span class="k">data</span>
+<span class="c1">-----------+-------+---------------------------------------------------------</span>
+ <span class="mi">0</span><span class="o">/</span><span class="n">BA5A688</span> <span class="o">|</span> <span class="mi">10298</span> <span class="o">|</span> <span class="k">BEGIN</span> <span class="mi">10298</span>
+ <span class="mi">0</span><span class="o">/</span><span class="n">BA5A6F0</span> <span class="o">|</span> <span class="mi">10298</span> <span class="o">|</span> <span class="k">table</span> <span class="n">inventory</span><span class="p">.</span><span class="n">customers</span><span class="p">:</span> <span class="k">INSERT</span><span class="p">:</span> <span class="n">id</span><span class="p">[</span><span class="n">integer</span><span class="p">]:</span><span class="mi">1006</span> <span class="n">name</span><span class="p">[</span><span class="n">character</span> <span class="n">varying</span><span class="p">]:</span><span class="s1">'Oliver Alsop'</span> <span class="n">email</span><span class="p">[</span><span class="n">character</span> <span class="n">varying</span><span class="p">]:</span><span class="s1">'oliver@mail.com'</span> <span class="n">created_at</span><span class="p">[</span><span class="k">timestamp</span> <span class="k">without</span> <span class="n">time</span> <span class="k">zone</span><span class="p">]:</span><span class="s1">'2024-04-11 00:21:33.970134'</span> <span class="n">modified_at</span><span class="p">[</span><span class="k">timestamp</span> <span class="k">without</span> <span class="n">time</span> <span class="k">zone</span><span class="p">]:</span><span class="s1">'2024-04-11 00:21:33.970134'</span>
+ <span class="mi">0</span><span class="o">/</span><span class="n">BA5A6F0</span> <span class="o">|</span> <span class="mi">10298</span> <span class="o">|</span> <span class="k">table</span> <span class="n">inventory</span><span class="p">.</span><span class="n">customers</span><span class="p">:</span> <span class="k">INSERT</span><span class="p">:</span> <span class="n">id</span><span class="p">[</span><span class="n">integer</span><span class="p">]:</span><span class="mi">1006</span> <span class="n">name</span><span class="p">[</span><span class="n">character</span> <span class="n">varying</span><span class="p">]:</span><span class="s1">'Trevor Baker'</span> <span class="n">email</span><span class="p">[</span><span class="n">character</span> <span class="n">varying</span><span class="p">]:</span><span class="s1">'trevor@mail.com'</span> <span class="n">created_at</span><span class="p">[</span><span class="k">timestamp</span> <span class="k">without</span> <span class="n">time</span> <span class="k">zone</span><span class="p">]:</span><span class="s1">'2024-04-11 00:22:33.970134'</span> <span class="n">modified_at</span><span class="p">[</span><span class="k">timestamp</span> <span class="k">without</span> <span class="n">time</span> <span class="k">zone</span><span class="p">]:</span><span class="s1">'2024-04-11 00:22:33.970134'</span>
+ <span class="mi">0</span><span class="o">/</span><span class="n">BA5A8A8</span> <span class="o">|</span> <span class="mi">10298</span> <span class="o">|</span> <span class="k">COMMIT</span> <span class="mi">10298</span>
+<span class="p">(</span><span class="mi">4</span> <span class="k">rows</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h2 id="event-driven-cdc-system-how">Event-driven CDC system, how?</h2>
+
+<p>CDC positions data stores as first-class citizens in the <a href="https://en.wikipedia.org/wiki/Event-driven_architecture">Event-Driven Architecture (EDA)</a>. The benefit comes from enabling the database to function as an event producer without adding event production overhead or requiring changes to the service that manages the database.</p>
+
+<p>Consider a scenario with several services, each managing a specific business domain. By utilizing CDC, these services’ data stores can emit data change events directly to the domain event bus or message bus which will enable other systems to act on these events when necessary.</p>
+
+<!-- markdownlint-disable MD033 -->
+<figure>
+  <img title="Architecture Outline" alt="Architecture Outline" src="../../../images/posts/2024-04-14-change-data-capture/architecture-outline.png" class="post-image" />
+  <figcaption class="post-image-figcaption">Architecture Outline</figcaption>
+</figure>
+<!-- markdownlint-enable MD033 -->
+
+<p>Event transformation is crucial in this setup to transform events using a versioned data contract that hides the internal structure of the database schema. This prevents tight coupling between downstream systems and the database schema, allowing modifications to the schema without affecting them.</p>
+
+<h2 id="tooling">Tooling</h2>
+
+<h3 id="open-source">Open-Source</h3>
+
+<p>One of the most prominent open-source options is <a href="https://debezium.io/">Debezium</a> as it offers various database source connectors such as MongoDB, MySQL, and PostgreSQL, among others. It also supports a range of sink connectors including Kafka, Redis, Kinesis, HTTP API, and more.</p>
+
+<h3 id="commercial">Commercial</h3>
+
+<p>There are many options available like <a href="https://cloud.google.com/datastream?hl=en">Google Datastream</a> and <a href="https://aws.amazon.com/dms/">AWS Database Migration Service</a>, among others which offer a fully managed CDC engine.</p>
+
+<p>Pricing varies based on data volume, rows replicated, connectors, and operational runs.</p>
+
+<h2 id="implementation">Implementation</h2>
+
+<p>For this article, I am using:</p>
+
+<ul>
+  <li><a href="https://www.postgresql.org/">PostgreSQL</a> database as the source.</li>
+  <li><a href="https://debezium.io/documentation/reference/stable/operations/debezium-server.html">Debezium server</a> to capture data changes.</li>
+  <li><a href="https://aws.amazon.com/pm/kinesis/">AWS Kinesis</a> data stream as the destination.</li>
+  <li><a href="https://aws.amazon.com/pm/lambda/">AWS Lambda</a> to transform events via event source mapping (ESM).</li>
+  <li><a href="https://aws.amazon.com/eventbridge/">AWS EventBridge</a> event bus as the event storage.</li>
+  <li><a href="https://aws.amazon.com/sqs/">AWS SQS</a> queue as the final target for bus events.</li>
+</ul>
+
+<p>I am using <a href="https://www.localstack.cloud/">LocalStack</a> to simulate AWS services locally. I use its <a href="https://docs.localstack.cloud/references/init-hooks/">initialization hooks</a> feature to provision necessary AWS resources with bash scripts.</p>
+
+<!-- markdownlint-disable MD033 -->
+<figure>
+  <img title="CDC Pipeline" alt="CDC Pipeline" src="../../../images/posts/2024-04-14-change-data-capture/cdc-pipeline.png" class="post-image" />
+  <figcaption class="post-image-figcaption">CDC Pipeline</figcaption>
+</figure>
+<!-- markdownlint-enable MD033 -->
+
+<h3 id="postgresql-database">PostgreSQL database</h3>
+
+<p>The source database consists of four tables: <code class="highlighter-rouge">products</code>, <code class="highlighter-rouge">stock</code>, <code class="highlighter-rouge">customers</code>, and <code class="highlighter-rouge">orders</code>.</p>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">-- Create the schema that we'll use to populate data and watch the effect in the WAL</span>
+<span class="k">CREATE</span> <span class="k">SCHEMA</span> <span class="n">inventory</span><span class="p">;</span>
+<span class="k">SET</span> <span class="n">search_path</span> <span class="k">TO</span> <span class="n">inventory</span><span class="p">;</span>
+
+<span class="c1">-- Create products table</span>
+<span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">products</span> <span class="p">(</span>
+  <span class="n">id</span> <span class="n">SERIAL</span> <span class="k">NOT</span> <span class="k">NULL</span> <span class="k">PRIMARY</span> <span class="k">KEY</span><span class="p">,</span>
+  <span class="n">name</span> <span class="n">VARCHAR</span><span class="p">(</span><span class="mi">255</span><span class="p">)</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">,</span>
+  <span class="n">description</span> <span class="n">VARCHAR</span><span class="p">(</span><span class="mi">512</span><span class="p">),</span>
+  <span class="n">created_at</span> <span class="k">TIMESTAMP</span> <span class="k">NOT</span> <span class="k">NULL</span> <span class="k">DEFAULT</span> <span class="k">CURRENT_TIMESTAMP</span><span class="p">,</span>
+  <span class="n">modified_at</span> <span class="k">TIMESTAMP</span> <span class="k">NOT</span> <span class="k">NULL</span> <span class="k">DEFAULT</span> <span class="k">CURRENT_TIMESTAMP</span>
+<span class="p">);</span>
+
+<span class="c1">-- Create stock table</span>
+<span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">stock</span> <span class="p">(</span>
+  <span class="n">product_id</span> <span class="n">INTEGER</span> <span class="k">NOT</span> <span class="k">NULL</span> <span class="k">PRIMARY</span> <span class="k">KEY</span><span class="p">,</span>
+  <span class="n">quantity</span> <span class="n">INTEGER</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">,</span>
+  <span class="n">created_at</span> <span class="k">timestamp</span> <span class="k">NOT</span> <span class="k">NULL</span> <span class="k">DEFAULT</span> <span class="k">CURRENT_TIMESTAMP</span><span class="p">,</span>
+  <span class="n">modified_at</span> <span class="k">timestamp</span> <span class="k">NOT</span> <span class="k">NULL</span> <span class="k">DEFAULT</span> <span class="k">CURRENT_TIMESTAMP</span><span class="p">,</span>
+  <span class="k">FOREIGN</span> <span class="k">KEY</span> <span class="p">(</span><span class="n">product_id</span><span class="p">)</span> <span class="k">REFERENCES</span> <span class="n">products</span><span class="p">(</span><span class="n">id</span><span class="p">)</span>
+<span class="p">);</span>
+
+<span class="c1">-- Create customers table</span>
+<span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">customers</span> <span class="p">(</span>
+  <span class="n">id</span> <span class="n">SERIAL</span> <span class="k">NOT</span> <span class="k">NULL</span> <span class="k">PRIMARY</span> <span class="k">KEY</span><span class="p">,</span>
+  <span class="n">name</span> <span class="n">VARCHAR</span><span class="p">(</span><span class="mi">255</span><span class="p">)</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">,</span>
+  <span class="n">email</span> <span class="n">VARCHAR</span><span class="p">(</span><span class="mi">255</span><span class="p">)</span> <span class="k">NOT</span> <span class="k">NULL</span> <span class="k">UNIQUE</span><span class="p">,</span>
+  <span class="n">created_at</span> <span class="k">TIMESTAMP</span> <span class="k">NOT</span> <span class="k">NULL</span> <span class="k">DEFAULT</span> <span class="k">CURRENT_TIMESTAMP</span><span class="p">,</span>
+  <span class="n">modified_at</span> <span class="k">TIMESTAMP</span> <span class="k">NOT</span> <span class="k">NULL</span> <span class="k">DEFAULT</span> <span class="k">CURRENT_TIMESTAMP</span>
+<span class="p">);</span>
+
+<span class="c1">-- Create orders table</span>
+<span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">orders</span> <span class="p">(</span>
+  <span class="n">id</span> <span class="n">SERIAL</span> <span class="k">NOT</span> <span class="k">NULL</span> <span class="k">PRIMARY</span> <span class="k">KEY</span><span class="p">,</span>
+  <span class="n">quantity</span> <span class="n">INTEGER</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">,</span>
+  <span class="n">customer_id</span> <span class="n">INTEGER</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">,</span>
+  <span class="n">product_id</span> <span class="n">INTEGER</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">,</span>
+  <span class="n">created_at</span> <span class="k">TIMESTAMP</span> <span class="k">NOT</span> <span class="k">NULL</span> <span class="k">DEFAULT</span> <span class="k">CURRENT_TIMESTAMP</span><span class="p">,</span>
+  <span class="n">modified_at</span> <span class="k">TIMESTAMP</span> <span class="k">NOT</span> <span class="k">NULL</span> <span class="k">DEFAULT</span> <span class="k">CURRENT_TIMESTAMP</span><span class="p">,</span>
+  <span class="k">FOREIGN</span> <span class="k">KEY</span> <span class="p">(</span><span class="n">customer_id</span><span class="p">)</span> <span class="k">REFERENCES</span> <span class="n">customers</span><span class="p">(</span><span class="n">id</span><span class="p">),</span>
+  <span class="k">FOREIGN</span> <span class="k">KEY</span> <span class="p">(</span><span class="n">product_id</span><span class="p">)</span> <span class="k">REFERENCES</span> <span class="n">products</span><span class="p">(</span><span class="n">id</span><span class="p">)</span>
+<span class="p">);</span>
+</code></pre></div></div>
+
+<h3 id="debezium-server">Debezium server</h3>
+
+<p>I’m using the <a href="https://debezium.io/documentation/reference/stable/operations/debezium-server.html">Debezium server</a> as the core CDC engine, capturing PostgreSQL data changes using the <a href="https://debezium.io/documentation/reference/stable/connectors/postgresql.html">PostgreSQL source connector</a>. It then transmits these change events to a Kinesis data stream using the <a href="https://debezium.io/documentation/reference/stable/operations/debezium-server.html#_amazon_kinesis">Kinesis sink connector</a>.</p>
+
+<p>The <code class="highlighter-rouge">application.properties</code> file hosts the source and sink configurations for the Debezium server.</p>
+
+<div class="language-properties highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># sink config
+</span><span class="py">debezium.sink.type</span><span class="p">=</span><span class="s">kinesis</span>
+<span class="py">debezium.sink.kinesis.region</span><span class="p">=</span><span class="s">us-east-1</span>
+<span class="py">debezium.sink.kinesis.endpoint</span><span class="p">=</span><span class="s">http://localstack:4566</span>
+
+<span class="c"># source config
+</span><span class="py">debezium.source.connector.class</span><span class="p">=</span><span class="s">io.debezium.connector.postgresql.PostgresConnector</span>
+<span class="py">debezium.source.offset.storage.file.filename</span><span class="p">=</span><span class="s">data/offsets.dat</span>
+<span class="py">debezium.source.offset.flush.interval.ms</span><span class="p">=</span><span class="s">0</span>
+<span class="py">debezium.source.database.hostname</span><span class="p">=</span><span class="s">postgres</span>
+<span class="py">debezium.source.database.port</span><span class="p">=</span><span class="s">5432</span>
+<span class="py">debezium.source.database.user</span><span class="p">=</span><span class="s">postgres</span>
+<span class="py">debezium.source.database.password</span><span class="p">=</span><span class="s">postgres</span>
+<span class="py">debezium.source.database.dbname</span><span class="p">=</span><span class="s">inventory_db</span>
+<span class="py">debezium.source.topic.prefix</span><span class="p">=</span><span class="s">kinesis</span>
+<span class="py">debezium.source.schema.include.list</span><span class="p">=</span><span class="s">inventory</span>
+<span class="py">debezium.source.table.include.list</span><span class="p">=</span><span class="s">inventory.products,inventory.customers</span>
+<span class="py">debezium.source.column.exculde.list</span><span class="p">=</span><span class="s">inventory.products.modified_at,inventory.customers.modified_at</span>
+<span class="py">debezium.source.plugin.name</span><span class="p">=</span><span class="s">pgoutput</span>
+<span class="py">debezium.source.database.history</span><span class="p">=</span><span class="s">io.debezium.relational.history.FileDatabaseHistory</span>
+<span class="py">debezium.source.database.history.file.filename</span><span class="p">=</span><span class="s">data/history.dat</span>
+</code></pre></div></div>
+
+<h3 id="aws-kinesis-data-stream">AWS Kinesis data stream</h3>
+
+<p>Create two Kinesis streams named <code class="highlighter-rouge">kinesis.inventory.products</code> and <code class="highlighter-rouge">kinesis.inventory.customers</code> to receive data change records from the Debezium.</p>
+
+<p>Debezium requires stream names to follow the pattern <code class="highlighter-rouge">prefix.schema.table</code> and these streams must be pre-created because Debezium does not manage stream creation.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Create a 'kinesis.inventory.products' Kinesis stream</span>
+awslocal <span class="se">\</span>
+  kinesis <span class="se">\</span>
+  create-stream <span class="se">\</span>
+  <span class="nt">--shard-count</span> 1 <span class="se">\</span>
+  <span class="nt">--stream-name</span> kinesis.inventory.products
+
+<span class="c"># Create a 'kinesis.inventory.customers' Kinesis stream</span>
+awslocal <span class="se">\</span>
+  kinesis <span class="se">\</span>
+  create-stream <span class="se">\</span>
+  <span class="nt">--shard-count</span> 1 <span class="se">\</span>
+  <span class="nt">--stream-name</span> kinesis.inventory.customers
+</code></pre></div></div>
+
+<h3 id="aws-eventbridge-bus">AWS Eventbridge bus</h3>
+
+<p>Create two event buses named <code class="highlighter-rouge">products</code> and <code class="highlighter-rouge">customers</code> to store data change events from the Kinesis streams <code class="highlighter-rouge">kinesis.inventory.products</code> and <code class="highlighter-rouge">kinesis.inventory.customers</code> respectively (more about this in the Lambda ESM part).</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Create a 'products' EventBridge bus</span>
+awslocal <span class="se">\</span>
+  events <span class="se">\</span>
+  create-event-bus <span class="se">\</span>
+  <span class="nt">--name</span> products
+
+<span class="c"># Create a 'customers' EventBridge bus</span>
+awslocal <span class="se">\</span>
+  events <span class="se">\</span>
+  create-event-bus <span class="se">\</span>
+  <span class="nt">--name</span> customers
+</code></pre></div></div>
+
+<h3 id="aws-lambda-function">AWS Lambda function</h3>
+
+<p>Create a <a href="https://docs.aws.amazon.com/lambda/latest/dg/with-kinesis.html">Lambda function to process records from Kinesis streams</a>, transform them, and publish them to the appropriate event bus by creating an event source mapping (ESM) between the Lambda function and the Kinesis stream.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Create a 'kinesis-esm' Lambda function</span>
+awslocal <span class="se">\</span>
+  lambda <span class="se">\</span>
+  create-function <span class="se">\</span>
+  <span class="nt">--function-name</span> kinesis-esm <span class="se">\</span>
+  <span class="nt">--zip-file</span> fileb://lambda/package.zip <span class="se">\</span>
+  <span class="nt">--runtime</span> python3.9 <span class="se">\</span>
+  <span class="nt">--handler</span> lambda/main.handler <span class="se">\</span>
+  <span class="nt">--role</span> arn:aws:iam::000000000000:role/lambda-role <span class="se">\</span>
+  <span class="nt">--environment</span> <span class="nv">Variables</span><span class="o">=</span><span class="s2">"{PRODUCTS_EVENT_BUS_NAME=products,CUSTOMERS_EVENT_BUS_NAME=customers}"</span>
+
+<span class="c"># Create an event source mapping between the Lambda function and the 'products' Kinesis stream</span>
+awslocal <span class="se">\</span>
+  lambda <span class="se">\</span>
+  create-event-source-mapping <span class="se">\</span>
+  <span class="nt">--function-name</span> kinesis-esm <span class="se">\</span>
+  <span class="nt">--event-source-arn</span> arn:aws:kinesis:us-east-1:000000000000:stream/products <span class="se">\</span>
+  <span class="nt">--starting-position</span> TRIM_HORIZON <span class="se">\</span>
+  <span class="nt">--maximum-retry-attempts</span> <span class="nt">-1</span> <span class="se">\</span>
+  <span class="nt">--batch-size</span> 10
+
+<span class="c"># The ESM for the 'customers' Kinesis stream is the same as above, so it's omitted for brevity.</span>
+<span class="c"># ..</span>
+</code></pre></div></div>
+
+<p>Below is a condensed version of the Lambda handler logic</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">try</span><span class="p">:</span>
+    <span class="c">#...</span>
+    <span class="k">for</span> <span class="n">record</span> <span class="ow">in</span> <span class="n">event</span><span class="p">[</span><span class="s">"Records"</span><span class="p">]:</span>
+        <span class="n">encoded_record_data</span> <span class="o">=</span> <span class="n">record</span><span class="p">[</span><span class="s">"kinesis"</span><span class="p">][</span><span class="s">"data"</span><span class="p">]</span>
+        <span class="n">decoded_record_data</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="n">encoded_record_data</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">"utf-8"</span><span class="p">)</span>
+        <span class="n">record_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">decoded_record_data</span><span class="p">)</span>
+
+        <span class="c"># Example event source ARN: "arn:aws:kinesis:us-east-1:XXXX:stream/stream-name"</span>
+        <span class="n">stream_name</span> <span class="o">=</span> <span class="n">record</span><span class="p">[</span><span class="s">"eventSourceARN"</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">"/"</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">detail_type</span> <span class="o">=</span> <span class="n">stream_event_detail_type_mapping</span><span class="p">[</span><span class="n">stream_name</span><span class="p">]</span>
+        <span class="n">bus_name</span> <span class="o">=</span> <span class="n">stream_event_bus_mapping</span><span class="p">[</span><span class="n">stream_name</span><span class="p">]</span>
+
+        <span class="n">transformed_event</span> <span class="o">=</span> <span class="n">_transform_event</span><span class="p">(</span><span class="n">record_data</span><span class="p">)</span>
+
+        <span class="n">event_entry</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">"Source"</span><span class="p">:</span> <span class="n">stream_name</span><span class="p">,</span>
+            <span class="s">"DetailType"</span><span class="p">:</span> <span class="n">detail_type</span><span class="p">,</span>
+            <span class="s">"Detail"</span><span class="p">:</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">transformed_event</span><span class="p">),</span>
+            <span class="s">"EventBusName"</span><span class="p">:</span> <span class="n">bus_name</span><span class="p">,</span>
+            <span class="s">"Time"</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()),</span>
+        <span class="p">}</span>
+        <span class="n">event_entries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">event_entry</span><span class="p">)</span>
+
+    <span class="n">response</span> <span class="o">=</span> <span class="n">eventbridge</span><span class="o">.</span><span class="n">put_events</span><span class="p">(</span><span class="n">Entries</span><span class="o">=</span><span class="n">event_entries</span><span class="p">)</span>
+    <span class="c">#...</span>
+<span class="k">except</span> <span class="nb">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="n">e</span>
+</code></pre></div></div>
+
+<h3 id="aws-sqs-queue">AWS SQS queue</h3>
+
+<p>Create an SQS FIFO queue, to preserve messages order, named <code class="highlighter-rouge">data-change</code> to receive events from both the <code class="highlighter-rouge">product</code> and <code class="highlighter-rouge">customers</code> event buses through an <a href="https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-rules.html">EventBridge rule</a>. This queue allows for the consumption of events to trigger appropriate actions or processing.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Create a 'data-change' FIFO SQS queue</span>
+awslocal <span class="se">\</span>
+  sqs <span class="se">\</span>
+  create-queue <span class="se">\</span>
+  <span class="nt">--queue-name</span> data-change.fifo <span class="se">\</span>
+  <span class="nt">--attributes</span> <span class="nv">FifoQueue</span><span class="o">=</span><span class="nb">true</span>,ContentBasedDeduplication<span class="o">=</span><span class="nb">true</span>
+
+<span class="c"># Create an EventBridge rule to forward all events from the 'products' bus</span>
+awslocal <span class="se">\</span>
+  events <span class="se">\</span>
+  put-rule <span class="se">\</span>
+  <span class="nt">--name</span> forward-to-sqs <span class="se">\</span>
+  <span class="nt">--event-pattern</span> <span class="s1">'{"source":[{"prefix":""}]}'</span> <span class="se">\</span>
+  <span class="nt">--event-bus-name</span> products <span class="se">\</span>
+  <span class="nt">--state</span> ENABLED <span class="se">\</span>
+  <span class="nt">--output</span> text <span class="se">\</span>
+  <span class="nt">--query</span> <span class="s1">'RuleArn'</span>
+
+<span class="c"># The 'customers' EventBridge bus rule is the same as above, so it's omitted for brevity.</span>
+<span class="c"># ...</span>
+
+<span class="c"># Assoicate the 'forward-to-sqs' SQS queue target to the above rule</span>
+awslocal <span class="se">\</span>
+  events <span class="se">\</span>
+  put-targets <span class="se">\</span>
+  <span class="nt">--rule</span> forward-to-sqs <span class="se">\</span>
+  <span class="nt">--event-bus-name</span> products <span class="se">\</span>
+  <span class="nt">--targets</span> <span class="s1">'[
+        {
+            "Id": "Target1",
+            "Arn": "arn:aws:sqs:us-east-1:000000000000:data-change.fifo",
+            "SqsParameters": {
+                "MessageGroupId": "Group1"
+            }
+        }
+    ]'</span>
+
+<span class="c"># The target assoicated with the 'customers' EventBridge bus rule is the same as above, so it's omitted for brevity.</span>
+<span class="c"># ...</span>
+</code></pre></div></div>
+
+<p>Below is a condensed version of the SQS queue consumer logic</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">#...</span>
+<span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">sqs</span><span class="o">.</span><span class="n">receive_message</span><span class="p">(</span><span class="n">QueueUrl</span><span class="o">=</span><span class="n">queue_url</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">sqs_message</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">"Messages"</span><span class="p">,</span> <span class="p">[]):</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="n">SQSMessage</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">sqs_message</span><span class="p">)</span>
+
+        <span class="n">bus_event</span> <span class="o">=</span> <span class="n">EventBridgeEvent</span><span class="o">.</span><span class="n">model_validate_json</span><span class="p">(</span><span class="n">message</span><span class="o">.</span><span class="n">body</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">"Received event detail-type: </span><span class="si">%</span><span class="s">s, source: </span><span class="si">%</span><span class="s">s"</span><span class="p">,</span> <span class="n">bus_event</span><span class="o">.</span><span class="n">detail_type</span><span class="p">,</span> <span class="n">bus_event</span><span class="o">.</span><span class="n">source</span><span class="p">)</span>
+
+        <span class="n">change_data_event</span> <span class="o">=</span> <span class="n">DebeziumEvent</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">bus_event</span><span class="o">.</span><span class="n">detail</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">"Message id '</span><span class="si">%</span><span class="s">s' - Event 'before': </span><span class="si">%</span><span class="s">s"</span><span class="p">,</span> <span class="n">message</span><span class="o">.</span><span class="nb">id</span><span class="p">,</span> <span class="n">change_data_event</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">before</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">"Message id '</span><span class="si">%</span><span class="s">s' - Event 'after': </span><span class="si">%</span><span class="s">s"</span><span class="p">,</span> <span class="n">message</span><span class="o">.</span><span class="nb">id</span><span class="p">,</span> <span class="n">change_data_event</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">after</span><span class="p">)</span>
+
+        <span class="n">_delete_message</span><span class="p">(</span><span class="n">message</span><span class="o">.</span><span class="n">receipt_handle</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">"Message with id '</span><span class="si">%</span><span class="s">s' deleted successfully."</span><span class="p">,</span> <span class="n">message</span><span class="o">.</span><span class="nb">id</span><span class="p">)</span>
+<span class="c">#...</span>
+</code></pre></div></div>
+
+<p>Below are sample logs from the SQS consumer container, showcasing a change data event for an insert operation on the <code class="highlighter-rouge">products</code> table.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>2024-04-13 23:13:56 21:13:56.908 [main] INFO consumer - Received event detail-type: ProductDataChangeEvent, source: kinesis.inventory.products
+2024-04-13 23:13:56 21:13:56.908 [main] INFO consumer - Data change event - before: None
+2024-04-13 23:13:56 21:13:56.909 [main] INFO consumer - Data change event - after: {'id': 101, 'name': 'scooter', 'description': 'Small 2-wheel scooter', 'created_at': 1712934636990657, 'modified_at': 1712934636990657}
+</code></pre></div></div>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>The beauty of CDC lies in its flexibility, as it can be utilized by any type of application to achieve low latency in response to data changes.</p>
+
+<p>By routing data change events to an event bus, we unlock new possibilities for downstream systems, allowing for seamless integration with analytics and data warehousing, as well as enabling real-time stream processing needed to build fraud detection, dynamic pricing, and various other applications.</p>
+
+<h2 id="further-resources">Further resources</h2>
+
+<ul>
+  <li><a href="https://www.youtube.com/watch?v=M6Z-RpEdaN4&amp;ab_channel=InfoQ">Change Data Capture for Microservices</a></li>
+  <li><a href="https://debezium.io/blog/2018/12/05/automating-cache-invalidation-with-change-data-capture/">Automating Cache Invalidation With Change Data Capture</a></li>
+  <li><a href="https://www.infoq.com/articles/saga-orchestration-outbox/">Saga Orchestration for Microservices Using the Outbox Pattern</a></li>
+  <li><a href="https://codeopinion.com/change-data-capture-event-driven-architecture/">Change Data Capture + Event-Driven Architecture</a></li>
+  <li><a href="https://kislayverma.com/software-architecture/domain-events-versus-change-data-capture/">Domain Events versus Change Data Capture</a></li>
+  <li><a href="https://www.infoq.com/articles/wonders-of-postgres-logical-decoding-messages/">The Wonders of Postgres Logical Decoding Messages</a></li>
+</ul>
+
+    </div>
+
+    
+<hr>
+
+<aside id="comments" class="disqus">
+  <h3><i class="icon icon-comments-o"></i> Comments</h3>
+  <div id="disqus_thread"></div>
+  <script>
+    var disqus_config = function () {
+      this.page.url = 'https://mohllal.github.io/blog/2024/change-data-capture/';
+      this.page.identifier = '/blog/2024/change-data-capture';
+    };
+    (function () {
+      var d = document,
+        s = d.createElement('script');
+      s.src = '//mohllal-github-io.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', +new Date());
+      (d.head || d.body).appendChild(s);
+    })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments
+      powered by Disqus.</a></noscript>
+</aside>
+
+
+  </div>
+
+</article>
+
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <ul class="social">
+  <li><a href="https://github.com/mohllal" target="_blank"><i class="icon icon-github"></i></a></li>
+  <li><a href="mailto:kareem.mohllal@gmail.com" target="_blank"><i class="icon icon-mail"></i></a></li>
+  <li><a href="https://linkedin.com/in/mohllal" target="_blank"><i class="icon icon-linkedin"></i></a></li>
+</ul>
+
+    <p class="txt-medium-gray">
+      <small>&copy;2024 All rights reserved. Made with <a href="http://jekyllrb.com/" target="_blank">Jekyll</a> and ♥</small>
+    </p>
+  </div>
+</footer>
+
+
+</body>
+
+</html>

@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Kubernetes Sidecar Container Injection</title>
+<meta name="description" content="This article is about building a Kubernetes controller to mutate pods automatically based on specific annotations or labels and inject one or more sidecar co...">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css">
+
+<link rel="stylesheet" href="/css/main.css">
+<link rel="canonical" href="https://mohllal.github.io/blog/2022/kubernetes-sidecar-container-injection/">
+<link rel="alternate" type="application/rss+xml" title="Kareem Mohllal" href="https://mohllal.github.io/feed.xml" />
+
+<script>
+  (function (i, s, o, g, r, a, m) {
+    i['GoogleAnalyticsObject'] = r; i[r] = i[r] || function () {
+      (i[r].q = i[r].q || []).push(arguments)
+    }, i[r].l = 1 * new Date(); a = s.createElement(o),
+      m = s.getElementsByTagName(o)[0]; a.async = 1; a.src = g; m.parentNode.insertBefore(a, m)
+  })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+  ga('create', 'XX-YYYYYYYY-Z', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+</head>
+
+<body>
+  <header class="site-header">
+  <div class="container">
+    <input type="checkbox" id="toggleNavbar">
+    <h1 class="logo"><a href="/"><span>Kareem Mohllal</span></a></h1>
+    <label for="toggleNavbar" role="button" class="toggle-navbar-button">
+      <i class="icon icon-menu"></i>
+      <i class="icon icon-cross"></i>
+    </label>
+    <nav class="navbar">
+      <ul>
+        <li><a href="/" title="Home">Home</a></li>
+        
+        <li><a href="/about" title="About">About</a></li>
+        
+        <li><a href="/blog" title="Blog">Blog</a></li>
+        
+        <li><a href="/tags" title="Tags">Tags</a></li>
+        
+        <li><a href="/resume/KareemKhaledResume.pdf" title="resume">resume</a></li>
+        <li><a href="/feed.xml" target="_blank"><i class="icon icon-rss"></i></a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+
+<main class="main-container">
+  <div class="container">
+    <article role="article" class="post">
+
+  <div class="card">
+    <header class="post-header">
+      <h1 class="post-title">Kubernetes Sidecar Container Injection</h1>
+      <em class="post-meta">
+        <time>
+          Nov 29, 2022
+        </time>
+      </em>
+
+      <div class="post-tags">
+        
+        <a class="tag-header" href="https://mohllal.github.io/tags#kubernetes">
+          #kubernetes
+        </a>
+        
+        <a class="tag-header" href="https://mohllal.github.io/tags#admission_controller">
+          #admission_controller
+        </a>
+        
+        <a class="tag-header" href="https://mohllal.github.io/tags#sidecar_pattern">
+          #sidecar_pattern
+        </a>
+        
+      </div>
+    </header>
+
+    <div class="post-content">
+      <p>This article is about building a Kubernetes controller to mutate pods automatically based on specific annotations or labels and inject one or more sidecar containers into them.</p>
+
+<h2 id="what-are-sidecar-containers">What are Sidecar Containers?</h2>
+
+<p>Sidecar containers are the containers that need to be run along with the primary container — the application container — and share the same resources with it, like the network and the storage interfaces, to enhance and extend the functionality of the main container without modifying its core set of tasks.</p>
+
+<!-- markdownlint-disable MD033 -->
+<figure>
+  <img title="Sidecar Pattern" alt="Sidecar Pattern" src="../../../images/posts/2022-11-29-kubernetes-sidecar-container-injection/sidecar-pattern.png" class="post-image" />
+  <figcaption class="post-image-figcaption">Sidecar Pattern</figcaption>
+</figure>
+<!-- markdownlint-enable MD033 -->
+
+<h2 id="kubernetes-admission-controller">Kubernetes Admission Controller</h2>
+
+<p>Starting in Kubernetes v1.7, alpha support for <a href="https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/">external admission controllers</a> is introduced; It provides two options for adding custom business logic to the API server for modifying objects as they are created and validating policy.</p>
+
+<p>First, let’s have a look at the admission controller definition in <a href="https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/">the official docs</a>:</p>
+
+<blockquote>
+  <p>An admission controller is a piece of code that intercepts requests to the Kubernetes API server before the persistence of the object but after the request is authenticated and authorised.</p>
+</blockquote>
+
+<p><a href="https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/#mutatingadmissionwebhook">MutatingAdmissionWebhook</a> and <a href="https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/#validatingadmissionwebhook">ValidatingAdmissionWebhook</a> are special controllers that execute the mutating and validating logic by calling a webhook API.</p>
+
+<!-- markdownlint-disable MD033 -->
+<figure>
+  <img title="Admission Controller Phases" alt="Admission Controller Phases" src="../../../images/posts/2022-11-29-kubernetes-sidecar-container-injection/admission-controller-phases.png" class="post-image" />
+  <figcaption class="post-image-figcaption">Admission Controller Phases</figcaption>
+</figure>
+<!-- markdownlint-enable MD033 -->
+
+<p>There are tons of use cases where both admission webhook/s can be helpful.</p>
+
+<ul>
+  <li>Implementing an image scanning component to detect vulnerabilities and misconfigurations in deployments.</li>
+  <li>Enforcing an annotation or a label on a resource to be admitted.</li>
+  <li>Injecting a sidecar proxy into pods that mediates inbound and outbound communication to it, the same as <a href="https://istio.io/">Istio</a> does.</li>
+  <li>And many, many others…</li>
+</ul>
+
+<p>This article is focused on the MutatingAdmissionWebhook to build the sidecar injection controller, and for the sake of simplicity, I will use a <a href="https://hub.docker.com/r/yauritux/busybox-curl">busybox-curl</a> as the sidecar container.</p>
+
+<h2 id="prerequisites">Prerequisites</h2>
+
+<p>First, verify that <code class="highlighter-rouge">admissionregistration.k8s.io/v1</code> API is enabled on your Kubernetes cluster using this command:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl api-versions | <span class="nb">grep </span>admissionregistration.k8s.io/v1
+</code></pre></div></div>
+
+<p>The output should be:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>admissionregistration.k8s.io/v1
+</code></pre></div></div>
+
+<p>Then, verify that <code class="highlighter-rouge">MutatingAdmissionWebhook</code> is enabled by checking the <code class="highlighter-rouge">--enable-admission-plugins</code> flag using this command:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kube-apiserver <span class="nt">-h</span> | <span class="nb">grep </span>enable-admission-plugins
+</code></pre></div></div>
+
+<p>The output should be:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Output is snipped, but you should find the MutatingAdmissionWebhook on the list there</span>
+CertificateApproval, CertificateSigning, ..., MutatingAdmissionWebhook, ...
+</code></pre></div></div>
+
+<h2 id="implementation">Implementation</h2>
+
+<p>The following code snippets have been edited to fit the article format better. The complete code is available on <a href="https://github.com/mohllal/kubernetes-sidecar-injector">the GitHub repo</a>.</p>
+
+<p>We need to run an HTTP API server to handle webhook API requests from the Kubernetes API server and mutate the pod containers accordingly.</p>
+
+<p>Let’s first understand the request and response structure that Kubernetes uses for its admission webhook API requests.</p>
+
+<h3 id="webhook-request">Webhook Request</h3>
+
+<p>Webhooks are sent as POST requests with an <code class="highlighter-rouge">AdmissionReview</code> object serialised to JSON as the body.</p>
+
+<p>In the <a href="https://github.com/mohllal/kubernetes-sidecar-injector/blob/main/src/types/kubernetes.ts#L178">AdmissionReview</a> object, the request key with the type <a href="https://github.com/mohllal/kubernetes-sidecar-injector/blob/main/src/types/kubernetes.ts#L111">AdmissionRequest</a> contains all details for the admission request.</p>
+
+<p>An example of an AdmissionReview request body containing the AdmissionRequest object - snipped JSON:</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="s2">"apiVersion"</span><span class="p">:</span><span class="w"> </span><span class="s2">"admission.k8s.io/v1"</span><span class="p">,</span><span class="w">
+  </span><span class="s2">"kind"</span><span class="p">:</span><span class="w"> </span><span class="s2">"AdmissionReview"</span><span class="p">,</span><span class="w">
+  </span><span class="s2">"request"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="s2">"uid"</span><span class="p">:</span><span class="w"> </span><span class="s2">"075a1336-0165-41e0-b0ac-8705883f1c41"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"dryRun"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"namespace"</span><span class="p">:</span><span class="w"> </span><span class="s2">"default"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"..."</span><span class="p">:</span><span class="w"> </span><span class="s2">"..."</span><span class="w">
+    </span><span class="s2">"object"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="s2">"apiVersion"</span><span class="p">:</span><span class="w"> </span><span class="s2">"v1"</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"kind"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Pod"</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"..."</span><span class="p">:</span><span class="w"> </span><span class="s2">"..."</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<h3 id="webhook-response">Webhook Response</h3>
+
+<p>Webhook API should respond with the proper HTTP status code — 2xx in case of success or non-2xx in case of failure — and a body containing an <code class="highlighter-rouge">AdmissionReview</code> object containing the mutation changes as a base64-encoded array of JSON patch operations.</p>
+
+<p>In the <a href="https://github.com/mohllal/kubernetes-sidecar-injector/blob/main/src/types/kubernetes.ts#L178">AdmissionReview</a> object, the response key with the type <a href="https://github.com/mohllal/kubernetes-sidecar-injector/blob/main/src/types/kubernetes.ts#L157">AdmissionResponse</a> should contain all details for the admission response.</p>
+
+<p>An example of an AdmissionReview response body containing the AdmissionResponse object - snipped JSON:</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="s2">"apiVersion"</span><span class="p">:</span><span class="w"> </span><span class="s2">"admission.k8s.io/v1"</span><span class="p">,</span><span class="w">
+  </span><span class="s2">"kind"</span><span class="p">:</span><span class="w"> </span><span class="s2">"AdmissionReview"</span><span class="p">,</span><span class="w">
+  </span><span class="s2">"response"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="s2">"uid"</span><span class="p">:</span><span class="w"> </span><span class="s2">"075a1336-0165-41e0-b0ac-8705883f1c41"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"allowed"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"patch"</span><span class="p">:</span><span class="w"> </span><span class="s2">"W3sib3AiOiJhZGQiLCJwYXRoIjoiL3NwZWMvY29udG..."</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"patchType"</span><span class="p">:</span><span class="w"> </span><span class="s2">"JSONPatch"</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<p>You can check the <a href="https://jsonpatch.com/">JSON patch</a> documentation for more details about how it can be used to describe changes to JSON objects.</p>
+
+<p>Let’s implement the sidecar container injection logic…</p>
+
+<h3 id="mutation-function">Mutation Function</h3>
+
+<p>It is a simple function that does the following:</p>
+
+<ul>
+  <li>Adds a <a href="https://hub.docker.com/r/yauritux/busybox-curl">busybox-curl</a> container to the Pod’s containers array</li>
+  <li>Generates the JSON patch change operations array using the <a href="https://www.npmjs.com/package/fast-json-patch">fast-json-patch</a> NPM package.</li>
+  <li>Stringify the resulting JSON patch array and encode it to base64 string.</li>
+</ul>
+
+<p>An example of the injection mutation function - snipped code:</p>
+
+<div class="language-typescript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="o">*</span> <span class="k">as</span> <span class="nx">jsonpatch</span> <span class="k">from</span> <span class="s1">'fast-json-patch'</span><span class="p">;</span>
+
+<span class="kd">const</span> <span class="nx">mutate</span> <span class="o">=</span> <span class="p">(</span><span class="nx">admissionReviewRequest</span><span class="p">:</span> <span class="nx">V1AdmissionRequest</span><span class="o">&lt;</span><span class="nx">V1Pod</span><span class="o">&gt;</span><span class="p">):</span> <span class="nx">V1AdmissionResponse</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="kd">const</span> <span class="na">admissionReviewResponse</span><span class="p">:</span> <span class="nx">V1AdmissionResponse</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="na">allowed</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+    <span class="na">uid</span><span class="p">:</span> <span class="nx">admissionReviewRequest</span><span class="p">.</span><span class="nx">uid</span><span class="p">,</span>
+  <span class="p">};</span>
+
+  <span class="c1">// get the pod object and clone it</span>
+  <span class="kd">const</span> <span class="nx">originalPod</span> <span class="o">=</span> <span class="nx">admissionReviewRequest</span><span class="p">.</span><span class="nx">object</span> <span class="k">as</span> <span class="nx">V1Pod</span><span class="p">;</span>
+  <span class="kd">const</span> <span class="nx">mutatedPod</span> <span class="o">=</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">originalPod</span><span class="p">))</span> <span class="k">as</span> <span class="nx">V1Pod</span><span class="p">;</span>
+
+  <span class="c1">// update the mutated pod spec with the new containers array</span>
+  <span class="kd">const</span> <span class="nx">mutatedPodContainers</span> <span class="o">=</span> <span class="nx">injectContainer</span><span class="p">(</span><span class="nx">originalPod</span><span class="p">.</span><span class="nx">spec</span><span class="p">?.</span><span class="nx">containers</span><span class="p">);</span>
+  <span class="nx">mutatedPod</span><span class="p">.</span><span class="nx">spec</span> <span class="o">=</span> <span class="p">{</span> <span class="p">...</span><span class="nx">mutatedPod</span><span class="p">.</span><span class="nx">spec</span><span class="p">,</span> <span class="na">containers</span><span class="p">:</span> <span class="nx">mutatedPodContainers</span> <span class="p">};</span>
+
+  <span class="c1">// generate json patch string</span>
+  <span class="kd">const</span> <span class="nx">patchArray</span> <span class="o">=</span> <span class="nx">jsonpatch</span><span class="p">.</span><span class="nx">compare</span><span class="p">(</span><span class="nx">originalPod</span><span class="p">,</span> <span class="nx">mutatedPod</span><span class="p">);</span>
+  <span class="kd">const</span> <span class="nx">patchArrayJsonStr</span> <span class="o">=</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">patchArray</span><span class="p">);</span>
+
+  <span class="nx">admissionReviewResponse</span><span class="p">.</span><span class="nx">patchType</span> <span class="o">=</span> <span class="s2">"JSONPatch"</span><span class="p">;</span>
+  <span class="nx">admissionReviewResponse</span><span class="p">.</span><span class="nx">patch</span> <span class="o">=</span> <span class="nx">Buffer</span><span class="p">.</span><span class="k">from</span><span class="p">(</span><span class="nx">patchArrayJsonStr</span><span class="p">).</span><span class="nx">toString</span><span class="p">(</span><span class="s1">'base64'</span><span class="p">);</span>
+
+  <span class="k">return</span> <span class="nx">admissionReviewResponse</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kd">const</span> <span class="nx">injectContainer</span> <span class="o">=</span> <span class="p">(</span><span class="nx">containers</span><span class="p">:</span> <span class="nx">V1Container</span><span class="p">[]</span> <span class="o">=</span> <span class="p">[]):</span> <span class="nx">V1Container</span><span class="p">[]</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="kd">const</span> <span class="na">sidecarContainer</span><span class="p">:</span> <span class="nx">V1Container</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="na">name</span><span class="p">:</span> <span class="s1">'curl'</span><span class="p">,</span>
+    <span class="na">image</span><span class="p">:</span> <span class="s1">'yauritux/busybox-curl:latest'</span>
+  <span class="p">};</span>
+
+  <span class="k">return</span> <span class="p">[...</span><span class="nx">containers</span><span class="p">,</span> <span class="nx">sidecarContainer</span><span class="p">];</span>
+<span class="p">};</span>
+</code></pre></div></div>
+
+<p>Okay, but how can we deploy it?</p>
+
+<h3 id="deployment">Deployment</h3>
+
+<p>Our admission webhook is an HTTP server that runs in the cluster, so it is a regular <a href="https://github.com/mohllal/kubernetes-sidecar-injector/blob/main/charts/kubernetes-sidecar-injector/templates/deployment.yaml">Kubernetes Deployment</a>.</p>
+
+<p>An example of Kubernetes Deployment that runs the admission webhook server - snipped YAML:</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">apps/v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Deployment</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">kubernetes-sidecar-injector</span>
+  <span class="na">labels</span><span class="pi">:</span>
+    <span class="s">app.kubernetes.io/instance</span><span class="pi">:</span> <span class="s">kubernetes-sidecar-injector</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">matchLabels</span><span class="pi">:</span>
+      <span class="s">app.kubernetes.io/instance</span><span class="pi">:</span> <span class="s">kubernetes-sidecar-injector</span>
+  <span class="na">template</span><span class="pi">:</span>
+    <span class="na">metadata</span><span class="pi">:</span>
+      <span class="na">labels</span><span class="pi">:</span>
+        <span class="s">app.kubernetes.io/instance</span><span class="pi">:</span> <span class="s">kubernetes-sidecar-injector</span>
+    <span class="na">spec</span><span class="pi">:</span>
+      <span class="na">containers</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">kubernetes-sidecar-injector</span>
+          <span class="na">image</span><span class="pi">:</span> <span class="s2">"</span><span class="s">mohllal/kubernetes-sidecar-injector:latest"</span>
+          <span class="na">env</span><span class="pi">:</span>
+            <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">TLS_CERT_FILE</span>
+              <span class="na">value</span><span class="pi">:</span> <span class="s2">"</span><span class="s">/var/run/secrets/certs/tls-cert-file"</span>
+            <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">TLS_PRIVATE_KEY_FILE</span>
+              <span class="na">value</span><span class="pi">:</span> <span class="s2">"</span><span class="s">/var/run/secrets/certs/tls-private-key-file"</span>
+          <span class="na">volumeMounts</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">admission-controller-cert</span>
+            <span class="na">mountPath</span><span class="pi">:</span> <span class="s2">"</span><span class="s">/var/run/secrets/certs"</span>
+            <span class="na">readOnly</span><span class="pi">:</span> <span class="no">true</span>
+      <span class="na">volumes</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">admission-controller-cert</span>
+        <span class="na">secret</span><span class="pi">:</span>
+          <span class="na">secretName</span><span class="pi">:</span> <span class="s">kubernetes-sidecar-injector</span>
+</code></pre></div></div>
+
+<p>And to make the Deployment’s pods accessible by the Kubernetes API server, we need a <a href="https://github.com/mohllal/kubernetes-sidecar-injector/blob/main/charts/kubernetes-sidecar-injector/templates/service.yaml">Kubernetes Service</a>.</p>
+
+<p>An example of Kubernetes Service for the admission webhook server - snipped YAML:</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Service</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">kubernetes-sidecar-injector</span>
+  <span class="na">labels</span><span class="pi">:</span>
+    <span class="s">app.kubernetes.io/instance</span><span class="pi">:</span> <span class="s">kubernetes-sidecar-injector</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">type</span><span class="pi">:</span> <span class="s">ClusterIP</span>
+  <span class="na">ports</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">port</span><span class="pi">:</span> <span class="s">443</span>
+      <span class="na">targetPort</span><span class="pi">:</span> <span class="s">8443</span>
+      <span class="na">protocol</span><span class="pi">:</span> <span class="s">TCP</span>
+      <span class="na">name</span><span class="pi">:</span> <span class="s">https</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="s">app.kubernetes.io/instance</span><span class="pi">:</span> <span class="s">kubernetes-sidecar-injector</span>
+</code></pre></div></div>
+
+<p>Admission webhooks are served via HTTPS, so we need proper certificates for the server. These certificates can be self-signed (signed by a self-signed CA), but we need Kubernetes to instruct the respective CA certificate when talking to the webhook server.</p>
+
+<p>In addition, the common name (CN) of the certificate must match the Kubernetes Service name used by the Kubernetes API server, which for internal services is <code class="highlighter-rouge">&lt;service-name&gt;.&lt;namespace&gt;.svc</code>.</p>
+
+<p>Here is an example of a <a href="https://github.com/mohllal/kubernetes-sidecar-injector/blob/main/charts/kubernetes-sidecar-injector/templates/admission-controller.yaml#L3">Kubernetes Secret</a> that holds the TLS certificate cert and private key.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Secret</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">kubernetes-sidecar-injector</span>
+<span class="na">type</span><span class="pi">:</span> <span class="s">Opaque</span>
+<span class="na">data</span><span class="pi">:</span>
+  <span class="na">tls-cert-file</span><span class="pi">:</span> <span class="s">LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JS...</span>
+  <span class="na">tls-private-key-file</span><span class="pi">:</span> <span class="s">LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0t...</span>
+</code></pre></div></div>
+
+<p>More about generating the certificate comes later in the demo section below. Still, if you don’t want to use Helm, you can generate a self-signed certificate using the <code class="highlighter-rouge">openssl</code> CLI tool and put it manually inside a Kubernetes Secret.</p>
+
+<p>Finally, the <a href="https://github.com/mohllal/kubernetes-sidecar-injector/blob/main/charts/kubernetes-sidecar-injector/templates/admission-controller.yaml#L19">Kubernetes MutatingWebhookConfiguration</a> describes the admission webhook configuration and which objects are subject to the admission webhook server.</p>
+
+<p>An example of Kubernetes MutatingWebhookConfiguration for the admission controller webhook server - snipped YAML:</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">admissionregistration.k8s.io/v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">MutatingWebhookConfiguration</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">kubernetes-sidecar-injector</span>
+<span class="na">webhooks</span><span class="pi">:</span>
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">kubernetes-sidecar-injector.default.svc</span>
+  <span class="na">admissionReviewVersions</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="s">v1</span>
+  <span class="na">sideEffects</span><span class="pi">:</span> <span class="s2">"</span><span class="s">NoneOnDryRun"</span>
+  <span class="na">reinvocationPolicy</span><span class="pi">:</span> <span class="s2">"</span><span class="s">Never"</span>
+  <span class="na">timeoutSeconds</span><span class="pi">:</span> <span class="s">10</span>
+  <span class="na">objectSelector</span><span class="pi">:</span>
+    <span class="na">matchExpressions</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">key</span><span class="pi">:</span> <span class="s">sidecar.me/inject</span>
+      <span class="na">operator</span><span class="pi">:</span> <span class="s">In</span>
+      <span class="na">values</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s2">"</span><span class="s">True"</span>
+      <span class="pi">-</span> <span class="s2">"</span><span class="s">true"</span>
+  <span class="na">rules</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="na">apiGroups</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="s2">"</span><span class="s">"</span>
+    <span class="na">apiVersions</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="s">v1</span>
+    <span class="na">operations</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="s">CREATE</span>
+    <span class="na">resources</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="s">pods</span>
+    <span class="na">scope</span><span class="pi">:</span> <span class="s1">'</span><span class="s">*'</span>
+  <span class="na">clientConfig</span><span class="pi">:</span>
+    <span class="na">service</span><span class="pi">:</span>
+      <span class="na">namespace</span><span class="pi">:</span> <span class="s">default</span>
+      <span class="na">name</span><span class="pi">:</span> <span class="s">kubernetes-sidecar-injector</span>
+      <span class="na">path</span><span class="pi">:</span> <span class="s2">"</span><span class="s">/mutation/pod"</span>
+    <span class="na">caBundle</span><span class="pi">:</span> <span class="s">LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0t...</span>
+</code></pre></div></div>
+
+<p>In the <code class="highlighter-rouge">objectSelector</code> and rules sections, we enable the mutation webhook only on pod objects with the <code class="highlighter-rouge">sidecar.me/inject: True</code> in their labels when a Pod is being created.</p>
+
+<p>In the <code class="highlighter-rouge">clientConfig</code> section, we define the webhook server hostname, our <code class="highlighter-rouge">kubernetes-sidecar-injector</code> service running in the <code class="highlighter-rouge">default</code> namespace, and configure the webhook API request to be landed on the <code class="highlighter-rouge">/mutation/pod</code> path.</p>
+
+<p>The <code class="highlighter-rouge">caBundle</code> refers to the PEM-encoded CA bundle generated earlier that the Kubernetes API Server as a client can use to validate the server certificate.</p>
+
+<p>You can check the <a href="https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/#webhook-configuration">official documentation</a> for more details about the different configurations that can be used for the admission webhook.</p>
+
+<p>Now, it is demo time…</p>
+
+<h2 id="demo">Demo</h2>
+
+<p>To make things easier, I used <a href="https://helm.sh/">Helm</a> charts to package two applications:</p>
+
+<ul>
+  <li>The <a href="https://github.com/mohllal/kubernetes-sidecar-injector/tree/main/charts/kubernetes-sidecar-injector">kubernetes-sidecar-injector</a> chart packages the API server’s deployment, service, TLS certificate, etc…</li>
+  <li>The <a href="https://github.com/mohllal/kubernetes-sidecar-injector/tree/main/charts/httpbin">httpbin</a> chart packages an <a href="https://github.com/postmanlabs/httpbin">echo HTTP server</a> to test the sidecar injection.</li>
+</ul>
+
+<p>I used both <a href="https://helm.sh/docs/chart_template_guide/function_list/#gensignedcert">genSignedCert</a> and <a href="https://helm.sh/docs/chart_template_guide/function_list/#genca">genCA</a> helm functions to generate an <code class="highlighter-rouge">x509</code> certificate with both Subject Common Name (CN) and SubjectAltName (SAN) set to the service fully qualified hostname.</p>
+
+<p>Let’s install both charts…</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 1. install the kubernetes-sidecar-injector chart</span>
+helm install kubernetes-sidecar-injector charts/kubernetes-sidecar-injector/ <span class="se">\</span>
+<span class="nt">--values</span> charts/kubernetes-sidecar-injector/values.yaml <span class="se">\</span>
+<span class="nt">--namespace</span> default
+
+<span class="c"># 2. install the httpbin chart</span>
+helm install httpbin charts/httpbin/ <span class="se">\</span>
+<span class="nt">--values</span> charts/httpbin/values.yaml <span class="se">\</span>
+<span class="nt">--namespace</span> default
+</code></pre></div></div>
+
+<p>Listing all containers in the <code class="highlighter-rouge">httpbin</code> Deployment’s Pod, you can notice that a new container is running in it named <code class="highlighter-rouge">curl</code>.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 1. export the pod name</span>
+<span class="nb">export </span><span class="nv">POD_NAME</span><span class="o">=</span><span class="k">$(</span>kubectl get pods <span class="se">\</span>
+<span class="nt">--namespace</span> default <span class="se">\</span>
+<span class="nt">-l</span> <span class="s2">"app.kubernetes.io/name=httpbin,app.kubernetes.io/instance=httpbin"</span> <span class="se">\</span>
+<span class="nt">-o</span> <span class="nv">jsonpath</span><span class="o">=</span><span class="s2">"{.items[0].metadata.name}"</span><span class="k">)</span>
+
+<span class="c"># 2. list all containers running inside the pod</span>
+kubectl get pods <span class="nv">$POD_NAME</span> <span class="se">\</span>
+<span class="nt">--namespace</span> default <span class="se">\</span>
+<span class="nt">-o</span> <span class="nv">jsonpath</span><span class="o">=</span><span class="s1">'{.spec.containers[*].name}'</span>
+</code></pre></div></div>
+
+<p>Accessing the <code class="highlighter-rouge">httpbin</code> HTTP server from inside the <code class="highlighter-rouge">curl</code> container.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 1. export the pod name</span>
+<span class="nb">export </span><span class="nv">POD_NAME</span><span class="o">=</span><span class="k">$(</span>kubectl get pods <span class="se">\</span>
+<span class="nt">--namespace</span> default <span class="se">\</span>
+<span class="nt">-l</span> <span class="s2">"app.kubernetes.io/name=httpbin,app.kubernetes.io/instance=httpbin"</span> <span class="se">\</span>
+<span class="nt">-o</span> <span class="nv">jsonpath</span><span class="o">=</span><span class="s2">"{.items[0].metadata.name}"</span><span class="k">)</span>
+
+<span class="c"># 2. curl from the sidecar container</span>
+kubectl <span class="nb">exec</span> <span class="nv">$POD_NAME</span> <span class="se">\</span>
+<span class="nt">--namespace</span> default <span class="se">\</span>
+<span class="nt">-c</span> curl <span class="se">\</span>
+<span class="nt">--</span> curl http://localhost/anything
+</code></pre></div></div>
+
+<p>Woohoo! the pod has been injected with an extra sidecar container that shares the same network interface with the primary container.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>Admission controllers are essential when it comes to extending the Kubernetes functionality with domain logic since they can mutate or reject requests to the Kubernetes API server before the object is persisted.</p>
+
+<p>Defining a custom admission system through HTTP-enabled webhooks is easy to implement in any programming language and opens the door to many possible use cases.</p>
+
+<h2 id="further-reading">Further reading</h2>
+
+<ul>
+  <li><a href="https://learn.microsoft.com/en-us/azure/architecture/patterns/sidecar">Sidecar pattern</a></li>
+  <li><a href="https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/">Using Admission Controllers</a></li>
+  <li><a href="https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/">Dynamic Admission Control</a></li>
+  <li><a href="https://kubernetes.io/blog/2019/03/21/a-guide-to-kubernetes-admission-controllers/">A Guide to Kubernetes Admission Controllers</a></li>
+</ul>
+
+    </div>
+
+    
+<hr>
+
+<aside id="comments" class="disqus">
+  <h3><i class="icon icon-comments-o"></i> Comments</h3>
+  <div id="disqus_thread"></div>
+  <script>
+    var disqus_config = function () {
+      this.page.url = 'https://mohllal.github.io/blog/2022/kubernetes-sidecar-container-injection/';
+      this.page.identifier = '/blog/2022/kubernetes-sidecar-container-injection';
+    };
+    (function () {
+      var d = document,
+        s = d.createElement('script');
+      s.src = '//mohllal-github-io.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', +new Date());
+      (d.head || d.body).appendChild(s);
+    })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments
+      powered by Disqus.</a></noscript>
+</aside>
+
+
+  </div>
+
+</article>
+
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <ul class="social">
+  <li><a href="https://github.com/mohllal" target="_blank"><i class="icon icon-github"></i></a></li>
+  <li><a href="mailto:kareem.mohllal@gmail.com" target="_blank"><i class="icon icon-mail"></i></a></li>
+  <li><a href="https://linkedin.com/in/mohllal" target="_blank"><i class="icon icon-linkedin"></i></a></li>
+</ul>
+
+    <p class="txt-medium-gray">
+      <small>&copy;2024 All rights reserved. Made with <a href="http://jekyllrb.com/" target="_blank">Jekyll</a> and ♥</small>
+    </p>
+  </div>
+</footer>
+
+
+</body>
+
+</html>
