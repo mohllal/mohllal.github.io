@@ -4,7 +4,6 @@ title: Node.js Multithreading!
 description: Multithreading in Node.js using the new Worker threads module!
 date: 2019-10-13 18:00:00
 comments: true
-description: Node.js used to be defined as a single-threaded asynchronous event-driven JavaScript runtime.
 keywords: nodejs multithreading worker_threads
 categories: nodejs multithreading
 tags: nodejs multithreading worker_threads asynchronous
@@ -19,11 +18,17 @@ So basically, what is the difference between multithreading and asynchrony?
 - **Multithreading**: A single CPU core can handle multiple threads of execution concurrently.
 - **Asynchrony**: Make events run separately from the application’s primary thread and notify it via signals when an event is completed or failed.
 
+<!-- markdownlint-disable MD033 -->
 <figure>
-  <img title="Multithreading vs Asynchrony" src="../../../images/posts/2019-10-13-nodejs-multithreading/multithreading-vs-asynchrony.png">
-
-  <figcaption>Multithreading vs Asynchrony</figcaption>
+  <img
+    title="Multithreading vs Asynchrony"
+    alt="Multithreading vs Asynchrony"
+    src="../../../images/posts/2019-10-13-nodejs-multithreading/multithreading-vs-asynchrony.png"
+    class="post-image"
+  >
+  <figcaption class="post-image-figcaption">Multithreading vs Asynchrony</figcaption>
 </figure>
+<!-- markdownlint-enable MD033 -->
 
 ### Would it be useful to use the multithreading paradigm in I/O-bound tasks?
 
@@ -39,11 +44,17 @@ Event-driven asynchronous I/O reduces the number of concurrent threads by removi
 
 > Thread-based networking is relatively inefficient and very difficult to use. Furthermore, users of Node.js are free from worries of dead-locking the process, since there are no locks. Almost no function in Node.js directly performs I/O, so the process never blocks. Because nothing blocks, scalable systems are very reasonable to develop in Node.js. — [Node.js Documentation](https://nodejs.org/en/about/)
 
+<!-- markdownlint-disable MD033 -->
 <figure>
-  <img title="Multithreading Blocking I/O vs Event-Driven Non-Blocking I/O" src="../../../images/posts/2019-10-13-nodejs-multithreading/blocking-vs-nonblocking.png">
-
-  <figcaption>Multithreading Blocking I/O vs Event-Driven Non-Blocking I/O</figcaption>
+  <img
+    title="Multithreading Blocking I/O vs Event-Driven Non-Blocking I/O"
+    alt="Multithreading Blocking I/O vs Event-Driven Non-Blocking I/O"
+    src="../../../images/posts/2019-10-13-nodejs-multithreading/blocking-vs-nonblocking.png"
+    class="post-image"
+  >
+  <figcaption class="post-image-figcaption">Multithreading Blocking I/O vs Event-Driven Non-Blocking I/O</figcaption>
 </figure>
+<!-- markdownlint-enable MD033 -->
 
 ### Node.js is using threads behind the scenes! How?
 
