@@ -1,0 +1,84 @@
+# Site settings
+# Basic information about the site
+title: Kareem Mohllal's Blog
+description: A journey through systems, architectures, and all things software engineering.
+baseurl: ""
+url: "https://mohllal.github.io"
+# url: "http://localhost:3000" # enable for local development
+
+# Personal information
+author:
+  name: Kareem Mohllal
+  tagline: Writing stories about the world for the machine; sometimes it understands.
+  title: Senior Software Engineer
+  email: kareem.mohllal@gmail.com
+  github: mohllal
+  linkedin: mohllal
+  picture: /assets/images/me.jpg
+
+# Navigation links
+# Links to include in menu navigation
+# For external links add external: true
+links:
+  - title: Home
+    url: /
+  - title: Series
+    url: /series
+  - title: Tags
+    url: /tags
+  - title: About Me
+    url: /about
+
+# Disqus settings
+# Configuration for Disqus comments
+disqus:
+  shortname: mohllal.github.io
+  site_shortname: mohllal-github-io
+
+# Build settings
+# Configuration for building the site
+destination: _site
+markdown: kramdown
+highlighter: rouge
+permalink: /:title/
+
+# HTML minify
+# Settings for HTML compression
+compress_html:
+  clippings: all
+  comments: all
+  endings: []
+  profile: false
+
+# Sass settings
+# Set the Sass partials directory
+sass:
+  sass_dir: _scss
+  style: compressed
+
+# Plugins
+# List of plugins to use
+plugins:
+  - jekyll-sitemap
+  - jekyll-feed
+  - jekyll-seo-tag
+  - jekyll-analytics
+  - jekyll-gist
+  - jemoji
+
+# Exclude files
+# List of files and directories to exclude from the build
+exclude:
+  - package.json
+  - package-lock.json
+  - node_modules
+  - src
+  - README.md
+  - Gemfile
+  - Gemfile.lock
+  - .jekyll-cache
+  - .jekyll-metadata
+  - .DS_Store
+  - .bundle
+  - vendor
+  - init_post.sh
