@@ -1,10 +1,10 @@
 .post-content
     padding rem(40px) 0
     img
-        max-width 100%
+        max-width 50%
         margin rem(30px) auto
         display block
-    p, h1, h2, h3, h4,ul,ol, .tags, iframe
+    p, h1, h2, h3, h4, ul, ol, .tags, iframe
         center(rem(800px))
         padding 0 rem(20px)
         margin 0 auto rem(30px)
@@ -14,21 +14,28 @@
         letter-spacing 0.01rem
         +above(cut)
             font-size rem(20px)
-    p,li
+    p, li
         color texts
         code
             color colorcode
+        &:before
+            content unset !important
     a
         mainFont(300)
         color main
         text-decoration none
         border-bottom 2px solid main
+        code
+            color colorcode
+            font-style: italic
+        &:hover
+            color hover
     iframe
         margin-top rem(30px)
         width 100%
     #twitter-widget-0
     	margin auto !important
-    h1,h2,h3,h4,h5
+    h1, h2, h3, h4, h5
         mainFont(800)
     h1
         font-size rem(30px)
@@ -45,7 +52,7 @@
         line-height 1.4
         +above(cut)
             font-size rem(25px)
-    ul,ol
+    ul, ol
         padding-left rem(40px)
     ul.post-list
         padding 0
@@ -58,9 +65,11 @@
         margin rem(50px) auto
         +below(cut)
             width 70%
-        p
-            color rgba(0,0,0,0.6)
-            margin 0
+        a
+            border-bottom 1px solid lightBlack
+        p, a
+            color lightBlack
+            margin 0 0 rem(10px)
             +below(cut)
                 font-size rem(18px)
                 line-height 1.5
@@ -69,6 +78,18 @@
     	center(rem(760px))
     	border 1px solid lightGray
     	margin 50px auto
+    .image-figure
+        margin rem(30px) auto
+        text-align center
+        img
+            margin 0 auto
+            display block
+        figcaption
+            font-size rem(14px)
+            color lightBlack
+            margin-top rem(10px)
+            +below(cut)
+                font-size rem(12px)
 
 .share
     center(800px)
@@ -82,7 +103,6 @@
         text-decoration none
         &:hover svg
             fill main
-
 
 table
     margin rem(50px) auto
