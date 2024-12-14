@@ -15,7 +15,7 @@
     <meta name="linkedin:title" content="{% if page.title %}{{ page.title }}{% else %}{{ site.title }}{% endif %}">
     <meta name="linkedin:description" content="{% if page.description %}{{ page.description | strip_html | strip_newlines | truncate: 160 }}{% else %}{{ site.description }}{% endif %}">
     {% if page.image %}
-    <meta property="linkedin:image:src" content="{{ site.url }}{{page.image }}">
+    <meta property="linkedin:image:src" content="{{ site.url }}{{ page.image }}">
     {% else %}
     <meta property="linkedin:image:src" content="{{ '/assets/images/me.jpg' | prepend: site.baseurl | prepend: site.url }}">
     {% endif %}
@@ -24,7 +24,7 @@
     <meta property="og:url" content="{{ page.url | replace:'index.html','' | prepend: site.baseurl | prepend: site.url }}">
     <meta property="og:title" content="{% if page.title %}{{ page.title }}{% else %}{{ site.title }}{% endif %}">
     {% if page.image %}
-    <meta property="og:image" content="{{ site.url }}{{page.image }}">
+    <meta property="og:image" content="{{ site.url }}{{ page.image }}">
     {% else %}
     <meta property="og:image" content="{{ '/assets/images/me.jpg' | prepend: site.baseurl | prepend: site.url }}">
     {% endif %}
@@ -34,7 +34,11 @@
     <!-- Social: Google+ / Schema.org  -->
     <meta itemprop="name" content="{% if page.title %}{{ page.title }}{% else %}{{ site.title }}{% endif %}"/>
     <meta itemprop="description" content="{% if page.description %}{{ page.description | strip_html | strip_newlines | truncate: 160 }}{% else %}{{ site.description }}{% endif %}">
-    <meta itemprop="image" content="{{ '/assets/images/me.jpg' | prepend: site.baseurl | prepend: site.url }}"/>
+    {% if page.image %}
+    <meta itemprop="image" content="{{ site.url }}{{ page.image }}">
+    {% else %}
+    <meta itemprop="image" content="{{ '/assets/images/me.jpg' | prepend: site.baseurl | prepend: site.url }}">
+    {% endif %}
 
     <!-- Favicon -->
     <link rel="shortcut icon" href="/assets/images/icons/favicon.ico" type="image/x-icon" />
