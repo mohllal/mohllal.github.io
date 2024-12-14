@@ -39,8 +39,12 @@ disqus:
 # Configuration for building the site
 destination: _site
 markdown: kramdown
-highlighter: rouge
 permalink: /:title/
+
+# Kramdown settings
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
 
 # HTML minify
 # Settings for HTML compression
@@ -52,9 +56,9 @@ compress_html:
 
 # Sass settings
 # Set the Sass partials directory
-sass:
-  sass_dir: _scss
-  style: compressed
+# sass:
+#   sass_dir: _scss
+#   style: compressed
 
 # Plugins
 # List of plugins to use
