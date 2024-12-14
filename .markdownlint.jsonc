@@ -4,23 +4,9 @@
   // MD033/inline-html: https://github.com/DavidAnson/markdownlint/blob/v0.36.1/doc/md033.md
   "MD033": false,
 
+  // MD026/no-trailing-punctuation: https://github.com/DavidAnson/markdownlint/blob/v0.36.1/doc/md026.md
+  "MD026": false,
+
   // MD013/line-length: https://github.com/DavidAnson/markdownlint/blob/v0.36.1/doc/md013.md
-  "MD013": {
-    // Number of characters
-    "line_length": 180,
-    // Number of characters for headings
-    "heading_line_length": 80,
-    // Number of characters for code blocks
-    "code_block_line_length": 80,
-    // Include code blocks
-    "code_blocks": true,
-    // Include tables
-    "tables": true,
-    // Include headings
-    "headings": true,
-    // Strict length checking
-    "strict": false,
-    // Stern length checking
-    "stern": false
-  }
+  "MD013": false
 }

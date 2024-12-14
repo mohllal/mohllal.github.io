@@ -40,7 +40,7 @@ me:
   email: kareem.mohllal@gmail.com
   github: mohllal
   linkedin: mohllal
-  thumb: /assets/images/me.jpg
+  picture: /assets/images/me.jpg
 ```
 
 **Don't forget to change your baseurl before build your site!**
@@ -70,8 +70,8 @@ When you create a new post, you need to fill the post information in the front-m
 layout: post
 title: "How to use"
 date: 2015-08-03 03:32:44
-image: '/assets/images/post-image.png'
 description: 'First steps to use this template'
+image: '/assets/img/post-image.png'
 tags:
 - jekyll
 - template
