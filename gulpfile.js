@@ -88,7 +88,15 @@ gulp.task('watch', function () {
 	gulp.watch('src/styl/**/*.styl', ['stylus']);
 	gulp.watch('src/js/**/*.js', ['js']);
 	gulp.watch('src/images/**/*.{jpg,png,gif}', ['imagemin']);
-	gulp.watch(['*.html', '*.scss', '_includes/*.html', '_layouts/*.html', '_posts/*', '_data/*', 'pages/*'], ['rebuild']);
+	gulp.watch([
+		'*.html',
+		'_includes/*.html',
+		'_layouts/*.html',
+		'_posts/*',
+		'_data/*',
+		'_plugins/*',
+		'pages/*'
+	], ['rebuild']);
 });
 
 
