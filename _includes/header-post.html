@@ -5,6 +5,7 @@
         {% endif %}
         <h1 class="post-title" itemprop="name">{{ page.title }}</h1>
         <p itemprop="description" class="subtitle">{{ page.description }}</p>
+        <p itemprop="reading-time" class="reading-time">{{ page.content | reading_time }} read</p>
     </div>
     <a class="down" data-scroll href="#scroll">
         <svg class="icon icon-angle-down">

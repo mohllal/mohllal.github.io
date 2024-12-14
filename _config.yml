@@ -60,6 +60,13 @@ compress_html:
 #   sass_dir: _scss
 #   style: compressed
 
+# Reading time settings
+# Configuration for reading time plugin
+reading_time:
+  second_plural: "secs"   
+  minute_singular: "min"
+  minute_plural: "min"
+
 # Plugins
 # List of plugins to use
 plugins:
