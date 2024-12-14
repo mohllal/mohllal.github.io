@@ -93,3 +93,4 @@ exclude:
   - .bundle
   - vendor
   - init_post.sh
+  - .github

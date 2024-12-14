@@ -7,7 +7,7 @@ This is a personal blog built using Jekyll and the [Will Jekyll Template](https:
 ## Requirements
 
 - Node.js v11.9.0
-- Ruby 3.2.5
+- Ruby 3.2.2
 
 ## Setup
 
