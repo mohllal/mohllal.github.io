@@ -9,6 +9,22 @@ This is a personal blog built using Jekyll and the [Will Jekyll Template](https:
 - Node.js v11.9.0
 - Ruby 3.2.2
 
+The `preview-resizer` Gulp task that resized blogs' preview images to 1200 x 630 pixels to ensure that the image displays well. This task requires `imagemagick` and `GraphicsMagick` to be installed on your system. You can install it using the following command:
+
+MacOS (using Homebrew):
+
+```shell
+brew install imagemagick
+brew install graphicsmagick
+```
+
+Ubuntu:
+
+```shell
+sudo apt-get install imagemagick
+sudo apt-get install graphicsmagick
+```
+
 ## Setup
 
 ### Basic Setup

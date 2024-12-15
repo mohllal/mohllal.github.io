@@ -9,7 +9,8 @@ var gulp = require('gulp'),
 	koutoSwiss = require('kouto-swiss'),
 	prefixer = require('autoprefixer-stylus'),
 	imagemin = require('gulp-imagemin'),
-	cp = require('child_process');
+	cp = require('child_process'),
+	imageResize = require('gulp-image-resize'); // Added gulp-image-resize
 
 var messages = {
 	jekyllBuild: '<span style="color: grey">Running:</span> $ jekyll build'
@@ -74,9 +75,25 @@ gulp.task('js', function () {
  * Imagemin Task
  */
 gulp.task('imagemin', function () {
-	return gulp.src('src/images/**/*.{jpg,png,gif,ico}')
+	return gulp.src(['src/images/**/*.{jpg,png,gif,ico}', '!src/images/**/preview.{jpg,png,gif,ico}'])
 		.pipe(plumber())
 		.pipe(imagemin({ optimizationLevel: 3, progressive: true, interlaced: true }))
+		.pipe(gulp.dest('assets/images/'));
+});
+
+/**
+ * Preview Resizer Task
+ */
+gulp.task('preview-resizer', function () {
+	return gulp.src('src/images/**/preview.{jpg,png,gif,ico}')
+		.pipe(plumber())
+		.pipe(imageResize({
+			width: 1200,
+			height: 630,
+			crop: true,
+			gravity: 'Center',
+			upscale: false
+		}))
 		.pipe(gulp.dest('assets/images/'));
 });
 
@@ -87,7 +104,7 @@ gulp.task('imagemin', function () {
 gulp.task('watch', function () {
 	gulp.watch('src/styl/**/*.styl', ['stylus']);
 	gulp.watch('src/js/**/*.js', ['js']);
-	gulp.watch('src/images/**/*.{jpg,png,gif}', ['imagemin']);
+	gulp.watch('src/images/**/*.{jpg,png,gif}', ['imagemin', 'preview-resizer']);
 	gulp.watch([
 		'*.html',
 		'_includes/*.html',
@@ -104,4 +121,4 @@ gulp.task('watch', function () {
  * Default task, running just `gulp` will compile the sass,
  * compile the jekyll site, launch BrowserSync & watch files.
  */
-gulp.task('default', ['js', 'stylus', 'imagemin', 'browser-sync', 'watch']);
+gulp.task('default', ['js', 'stylus', 'imagemin', 'preview-resizer', 'browser-sync', 'watch']);
