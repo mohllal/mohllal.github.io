@@ -94,3 +94,4 @@ exclude:
   - vendor
   - init_post.sh
   - .github
+  - drawings

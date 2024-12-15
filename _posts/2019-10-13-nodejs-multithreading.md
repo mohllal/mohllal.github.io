@@ -3,7 +3,7 @@ layout: post
 title: "Node.js Multithreading!"
 date: 2019-10-13
 description: 'Multithreading in Node.js using the worker threads module!'
-image: '/assets/images/posts/synchrony-vs-asynchrony-vs-multithreading.png'
+image: '/assets/images/posts/nodejs-multithreading/preview.png'
 tags:
 - nodejs
 excerpt: 'Multithreading in Node.js using the worker threads module!'
@@ -22,7 +22,7 @@ Before diving into the details, let’s differentiate between the terms synchron
 - **Multithreading**: Multithreading uses multiple threads to execute tasks concurrently. Each thread can independently handle a task, enabling parallel execution and reducing idle time for CPU-bound or I/O-intensive operations.
 
 <figure class="image-figure">
-  <img src="/assets/images/posts/synchrony-vs-asynchrony-vs-multithreading.png" alt="Synchrony vs Asynchrony vs Multithreading">
+  <img src="/assets/images/posts/nodejs-multithreading/synchrony-vs-asynchrony-vs-multithreading.png" alt="Synchrony vs Asynchrony vs Multithreading">
   <figcaption>Synchrony vs Asynchrony vs Multithreading</figcaption>
 </figure>
 
@@ -51,7 +51,7 @@ Event-driven asynchronous I/O, on the other hand, eliminates the need to manage 
 </blockquote>
 
 <figure class="image-figure">
-  <img src="/assets/images/posts/blocking-vs-nonblocking-io.png" alt="Blocking vs Non-Blocking I/O">
+  <img src="/assets/images/posts/nodejs-multithreading/blocking-vs-nonblocking-io.png" alt="Blocking vs Non-Blocking I/O">
   <figcaption>Blocking vs Non-Blocking I/O</figcaption>
 </figure>
 
