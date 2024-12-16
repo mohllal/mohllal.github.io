@@ -9,6 +9,5 @@ group :jekyll_plugins do
   gem 'jekyll-feed', '~> 0.12'
   gem 'jemoji', '~> 0.12'
   gem 'jekyll-seo-tag', '~> 2.7'
-  gem 'jekyll-analytics', '~> 0.1'
   gem 'jekyll-gist', '~> 1.5'
 end

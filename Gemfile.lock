@@ -85,7 +85,6 @@ GEM
       safe_yaml (~> 1.0)
       terminal-table (>= 1.8, < 4.0)
       webrick (~> 1.7)
-    jekyll-analytics (0.1.14)
     jekyll-feed (0.17.0)
       jekyll (>= 3.7, < 5.0)
     jekyll-gist (1.5.0)
@@ -139,7 +138,7 @@ GEM
     rb-fsevent (0.11.2)
     rb-inotify (0.11.1)
       ffi (~> 1.0)
-    rexml (3.3.9)
+    rexml (3.4.0)
     rouge (4.5.1)
     safe_yaml (1.0.5)
     sass-embedded (1.83.0-aarch64-linux-gnu)
@@ -194,7 +193,6 @@ PLATFORMS
 
 DEPENDENCIES
   jekyll (= 4.3.4)
-  jekyll-analytics (~> 0.1)
   jekyll-feed (~> 0.12)
   jekyll-gist (~> 1.5)
   jekyll-seo-tag (~> 2.7)

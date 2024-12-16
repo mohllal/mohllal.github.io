@@ -67,13 +67,17 @@ reading_time:
   minute_singular: "min"
   minute_plural: "min"
 
+# Google Analytics settings
+google_analytics:
+  enabled: true
+  measurement_id: G-NF01TD4QR3
+
 # Plugins
 # List of plugins to use
 plugins:
   - jekyll-sitemap
   - jekyll-feed
   - jekyll-seo-tag
-  - jekyll-analytics
   - jekyll-gist
   - jemoji
 
