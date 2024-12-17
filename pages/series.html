@@ -5,10 +5,10 @@ permalink: /series/index.html
 description: "Explore blog posts categorized by series that pique your interest..."
 ---
 
-{% for tag in site.categories %}
-<span class="tag-title" id="{{ tag[0] | slugify }}">{{ tag[0] | capitalize }}</span>
+{% for category in site.categories %}
+<span class="category-title" id="{{ category[0] | slugify }}">{{ category[0] | capitalize }}</span>
 <ul class="post-list">
-  {% assign pages_list = tag[1] %}
+  {% assign pages_list = category[1] %}
   {% for post in pages_list reversed %}
   {% if post.title != null %}
   {% if group == null or group == post.group %}
