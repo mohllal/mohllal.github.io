@@ -16,9 +16,7 @@ It’s designed for building scalable network applications using non-blocking I/
 Before diving into the details, let’s differentiate between the terms synchrony, asynchrony, and multithreading:
 
 - **Synchrony**: Synchrony involves processing tasks sequentially, where each task must be completed before the next begins. A single thread handles one task at a time, often resulting in idle time if a task involves waiting (e.g., for I/O).
-
 - **Asynchrony**: Asynchrony allows a single thread to manage multiple tasks without waiting for each task to complete. Tasks are split into smaller chunks or callbacks and rely on signals or event-driven mechanisms to notify the thread when they are complete.
-
 - **Multithreading**: Multithreading uses multiple threads to execute tasks concurrently. Each thread can independently handle a task, enabling parallel execution and reducing idle time for CPU-bound or I/O-intensive operations.
 
 <figure class="image-figure">
@@ -60,7 +58,6 @@ Event-driven asynchronous I/O, on the other hand, eliminates the need to manage 
 Node.js uses threads in two ways:
 
 - The main **Event Loop** thread: Executes your JavaScript code (initialization and callbacks) and handles non-blocking asynchronous operations such as network I/O.
-
 - The **Worker Pool** (a.k.a threadpool) threads: Offloads tasks for I/O APIs that the OS can’t handle asynchronously and certain CPU-intensive operations.
 
 *Note: we have no control over Worker Pool threads as they are managed by [`libuv`](http://docs.libuv.org/en/v1.x/threadpool.html).*
@@ -207,9 +204,7 @@ if (isMainThread) {
 You can configure process.stderr and process.stdout to perform synchronous writes to a file, preventing issues like unexpectedly interleaved output from console.log() or console.error(), or output being lost if process.exit() is called before asynchronous write finishes.
 
 - [`worker.stderr`](https://nodejs.org/docs/latest-v12.x/api/worker_threads.html#worker_threads_worker_stderr): If `stderr: true` wasn’t passed to the [`Worker`](https://nodejs.org/docs/latest-v12.x/api/worker_threads.html#worker_threads_class_worker) constructor, data pipes to the parent thread’s [`process.stderr`](https://nodejs.org/docs/latest-v12.x/api/process.html#process_process_stderr) [duplex stream](https://nodejs.org/docs/latest-v12.x/api/stream.html#stream_duplex_and_transform_streams).
-
 - [`worker.stdin`](https://nodejs.org/docs/latest-v12.x/api/worker_threads.html#worker_threads_worker_stdin): If `stdin: true` was passed to the [`Worker`](https://nodejs.org/docs/latest-v12.x/api/worker_threads.html#worker_threads_class_worker) constructor, data written to this stream will be available in the worker thread as a [`process.stdin`](https://nodejs.org/docs/latest-v12.x/api/process.html#process_process_stdin).
-
 - [`worker.stdout`](https://nodejs.org/docs/latest-v12.x/api/worker_threads.html#worker_threads_worker_stdout): If `stdout: true` wasn’t passed to the [`Worker`](https://nodejs.org/docs/latest-v12.x/api/worker_threads.html#worker_threads_class_worker) constructor, data will be piped to the parent thread's [`process.stdout`](https://nodejs.org/docs/latest-v12.x/api/process.html#process_process_stdout) [duplex stream](https://nodejs.org/docs/latest-v12.x/api/stream.html#stream_duplex_and_transform_streams).
 
 ## Let’s solve the problem we faced earlier
