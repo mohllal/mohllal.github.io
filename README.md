@@ -1,8 +1,8 @@
-# Personal Blog
+# My Personal Blog
 
 ![Screenshot](screenshot.png)
 
-This is a personal blog built using Jekyll and the [Will Jekyll Template](https://github.com/willianjusten/will-jekyll-templat).
+This is my personal blog built using Jekyll and the [Will Jekyll Template](https://github.com/willianjusten/will-jekyll-templat).
 
 ## Requirements
 
