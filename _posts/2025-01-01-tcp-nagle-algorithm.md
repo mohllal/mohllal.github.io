@@ -2,11 +2,11 @@
 layout: post
 title: "Batch or Burst? Disabling Nagle’s Algorithm with TCP_NODELAY for Better Latency"
 date: 2025-01-01
-description: 'When latency matters, switch off Nagle’s Algorithm: TCP_NODELAY delivers small packets without delay..'
+description: 'When latency matters, switch off Nagle’s Algorithm: TCP_NODELAY delivers small packets without delay.'
 image: '/assets/images/posts/tcp-nagle-algorithm/preview.png'
 tags:
 - tcp
-excerpt: 'When latency matters, switch off Nagle’s Algorithm: TCP_NODELAY delivers small packets without delay..'
+excerpt: 'When latency matters, switch off Nagle’s Algorithm: TCP_NODELAY delivers small packets without delay.'
 ---
 
 <blockquote cite="https://hpbn.co/">
@@ -18,13 +18,13 @@ excerpt: 'When latency matters, switch off Nagle’s Algorithm: TCP_NODELAY deli
   </p>
 </blockquote>
 
-Like everything in software engineering, every decision involves trade-offs. TCP’s Nagle’s algorithm is a perfect example, balancing latency and throughput.
+Like everything in software engineering, every decision involves trade-offs. TCP’s Nagle’s algorithm is a perfect example of balancing latency and throughput.
 
-This post explains how the Nagle’s algorithm works, why disabling it might be beneficial, and how to go about it.
+This post explains how Nagle’s algorithm works, why disabling it might be beneficial, and how to go about it.
 
 ## What is Nagle's algorithm?
 
-Nagle’s algorithm was introduced by John Nagle, [RFC 896](https://datatracker.ietf.org/doc/html/rfc896), to address the *“Small-Packet Problem”* in TCP which arises when a stream of very small data segments (e.g., keystrokes or one-byte messages) flood the network, causing excessive network overhead.
+Nagle’s algorithm was introduced by John Nagle, [RFC 896](https://datatracker.ietf.org/doc/html/rfc896), to address the *“Small-Packet Problem”* in TCP, which arises when a stream of very small data segments (e.g., keystrokes or one-byte messages) flood the network, causing excessive network overhead.
 
 Each TCP packet carries headers (TCP, IP, Ethernet) that can amount to 40+ bytes of overhead on top of the actual payload. If an application sends many small packets (e.g., 1-byte payloads each time), network overhead skyrockets.
 
@@ -40,7 +40,7 @@ Nagle’s algorithm addresses this by buffering small outgoing packets until one
 
 By waiting for these triggers, Nagle’s Algorithm **coalesces multiple small writes into fewer, larger packets**, reducing the total number of packets transmitted.
 
-The net effect is fewer TCP packets on the wire, saving bandwidth and reducing overall network congestion. However, the trade-off is added latency for small, time-sensitive messages, because data may not be sent immediately while waiting for an ACK or enough buffered data to fill a segment.
+The net effect is fewer TCP packets on the wire, saving bandwidth and reducing overall network congestion. However, the trade-off is added latency for small, time-sensitive messages because data may not be sent immediately while waiting for an ACK or enough buffered data to fill a segment.
 
 ## Understanding the kernel’s socket buffers
 
@@ -48,22 +48,30 @@ Let’s first understand how data travels from the application to the network th
 
 ### Outgoing socket buffer
 
-When an application writes data to a TCP socket, that data first lands in the kernel’s socket buffer. The TCP stack (in the OS kernel) controls how and when data is packaged and sent on the network. Nagle’s algorithm is part of that process. If data is small and there’s outstanding unacknowledged data, TCP will typically wait briefly to coalesce further bytes before sending them as one larger segment.
+When an application writes data to a TCP socket, that data first lands in the kernel’s socket buffer. The TCP stack (in the OS kernel) controls how and when data is packaged and sent on the network.
+
+Nagle’s algorithm is part of that process. If data is small and there’s outstanding unacknowledged data, TCP will typically wait briefly to coalesce further bytes before sending them as one larger segment.
 
 ### Inbound buffer and ACK
 
-Once data is sent, the receiver’s TCP stack eventually sends back an ACK for the data it has received. Upon receiving the ACK on the sender side, the socket buffer can purge the acknowledged data and can also decide to send the next batch if any is queued up and waiting.
+Once data is sent, the receiver’s TCP stack eventually sends back an ACK for the data it has received.
+
+Upon receiving the ACK on the sender side, the socket buffer can purge the acknowledged data and can also decide to send the next batch if any is queued up and waiting.
 
 ## Nagle’s problem with Delayed ACK
 
-Even with Nagle’s Algorithm doing its job of batching small packets to optimize throughput, the situation can get trickier when Delayed ACK enters the mix. Delayed ACK is a common TCP feature, [RFC 813](https://datatracker.ietf.org/doc/html/rfc813), implemented in most TCP stacks, that allows the receiver to wait briefly — typically around 200 ms in some TCP stacks — before sending an acknowledgment. This wait helps the receiver combine multiple ACKs into a single packet, reducing overhead and network chatter.
+Even with Nagle’s Algorithm doing its job of batching small packets to optimize throughput, the situation can get trickier when Delayed ACK enters the mix.
+
+Delayed ACK is a common TCP feature, [RFC813](https://datatracker.ietf.org/doc/html/rfc813), implemented in most TCP stacks, that allows the receiver to wait briefly - typically around 200 ms in some TCP stacks - before sending an acknowledgment. This wait helps the receiver combine multiple ACKs into a single packet, reducing overhead and network chatter.
 
 However, mixing Nagle’s Algorithm with Delayed ACK may create **a feedback loop of waiting**:
 
 1. Sender Side (Nagle’s Algorithm): The sender may hold back on transmitting more data if it hasn’t received an ACK for the previous packet, especially if the data being sent is small.
 2. Receiver Side (Delayed ACK): The receiver might hold off on sending the ACK right away, hoping to bundle multiple ACKs or piggyback the ACK with outgoing data.
 
-Result: **Both sides wait—Nagle’s Algorithm waits for the ACK to send more data, and Delayed ACK waits to send the ACK**, creating latency spikes. This is sometimes referred to as the *“Silly Window Syndrome”* or an extension of it, where neither side proceeds quickly due to mismatched waiting strategies.
+Result: Both sides wait- **Nagle's Algorithm waits for the ACK to send more data, and Delayed ACK waits to send the ACK**, creating latency spikes.
+
+This is sometimes referred to as the *“Silly Window Syndrome”* or an extension of it, where neither side proceeds quickly due to mismatched waiting strategies.
 
 <blockquote cite="https://news.ycombinator.com/item?id=10608356">
   <p>
@@ -74,7 +82,7 @@ Result: **Both sides wait—Nagle’s Algorithm waits for the ACK to send more d
   </p>
 </blockquote>
 
-In high-latency or real-time scenarios, this feedback loop can degrade application responsiveness. This often addressed by disabling either Nagle’s Algorithm (`TCP_NODELAY`) or Delayed ACK where possible (`TCP_QUICKACK`) to prevent the two mechanisms from interfering with each other and causing undesirable delay.
+In high-latency or real-time scenarios, this feedback loop can degrade application responsiveness. This is often addressed by disabling either Nagle’s Algorithm (`TCP_NODELAY`) or Delayed ACK where possible (`TCP_QUICKACK`) to prevent the two mechanisms from interfering with each other and causing undesirable delay.
 
 <figure class="image-figure">
   <img src="/assets/images/posts/tcp-nagle-algorithm/tcp-with-nagle-algorithm-and-delayed-ack.png" alt="TCP with Nagle's Algorithm and Delayed ACK">
