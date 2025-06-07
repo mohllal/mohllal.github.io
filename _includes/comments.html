@@ -1,3 +1,4 @@
+{% if site.disqus.enabled and jekyll.environment == "production" %}
 <section class="comments">
     <h3>Comments</h3>
     <div id="disqus_thread"></div>
@@ -23,3 +24,4 @@
         }
     };
 </script>
+{% endif %}
