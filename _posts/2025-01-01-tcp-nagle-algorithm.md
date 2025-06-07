@@ -6,6 +6,7 @@ description: 'When latency matters, switch off Nagle’s Algorithm: TCP_NODELAY 
 image: '/assets/images/posts/tcp-nagle-algorithm/preview.png'
 tags:
 - tcp
+- http
 excerpt: 'When latency matters, switch off Nagle’s Algorithm: TCP_NODELAY delivers small packets without delay.'
 ---
 

@@ -6,6 +6,7 @@ description: 'Capture data changes and deliver events to downstream systems with
 image: '/assets/images/posts/turn-data-changes-into-events/preview.png'
 tags:
 - change data capture
+- event-driven architecture
 excerpt: 'Capture data changes and deliver events to downstream systems with an event-centric CDC pipeline.'
 ---
 

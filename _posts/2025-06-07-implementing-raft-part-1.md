@@ -129,6 +129,6 @@ When the network partition heals, the old leader from Partition A will receive a
 
 This ensures that Raft avoids a [split-brain](https://en.wikipedia.org/wiki/Split-brain_(computing)) scenario where two leaders make conflicting decisions. Only the partition with a majority of nodes can make progress.
 
-## Up Next
+## Up next
 
 We've covered the core theory behind Raft's leader election and log replication. In the next post, we'll start turning these concepts into running Ruby code. Stay tuned!

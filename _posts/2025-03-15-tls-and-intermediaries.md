@@ -6,6 +6,7 @@ description: 'How TLS ensures intermediaries can’t inspect, modify, or disrupt
 image: '/assets/images/posts/tls-and-intermediaries/preview.png'
 tags:
 - tls
+- http
 excerpt: 'How TLS ensures intermediaries can’t inspect, modify, or disrupt the web traffic'
 ---
 

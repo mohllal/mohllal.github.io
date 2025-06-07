@@ -6,6 +6,7 @@ description: 'Automating Sidecar Container Injection with Kubernetes Admission C
 image: '/assets/images/posts/extending-kubernetes-with-admission-controller/preview.png'
 tags:
 - kubernetes
+- sidecar pattern
 excerpt: 'Automating Sidecar Container Injection with Kubernetes Admission Controllers!'
 ---
 

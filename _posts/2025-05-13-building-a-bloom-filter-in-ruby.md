@@ -6,6 +6,7 @@ description: "Building blazing-fast and memory-efficient probabilistic lookups i
 image: '/assets/images/posts/building-a-bloom-filter-in-ruby/preview.png'
 tags:
 - bloom filter
+- probabilistic data structure
 excerpt: "Building blazing-fast and memory-efficient probabilistic lookups in Ruby"
 ---
 
