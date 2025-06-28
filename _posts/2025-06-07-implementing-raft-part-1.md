@@ -131,4 +131,4 @@ This ensures that Raft avoids a [split-brain](https://en.wikipedia.org/wiki/Spli
 
 ## Up next
 
-We've covered the core theory behind Raft's leader election and log replication. In the next post, we'll start turning these concepts into running Ruby code. Stay tuned!
+We've covered the core theory behind Raft's leader election and log replication. [In the next post](/implementing-raft-part-2), we'll start turning these concepts into running Ruby code. Stay tuned!

@@ -32,14 +32,47 @@ module Raft
     def initialize(node, port)
       @node = node
       @port = port
+      @server_thread = nil
+      @logger = Logger.new(STDOUT)
     end
 
     def start
-      uri = "druby://localhost:#{port}"
-      DRb.start_service(uri, node)
-      logger.info "DRb server started on #{uri}"
+      return if server_thread&.alive?
+
+      begin
+        uri = "druby://localhost:#{port}"
+
+        DRb.start_service(uri, node)
+
+        logger.info "DRb server started on #{uri}"
+
+        # Keep server running in background thread
+        self.server_thread = Thread.new do
+          Thread.current.abort_on_exception = true
+          DRb.thread.join
+        end
+
+        server_thread
+      rescue StandardError => e
+        logger.error "Failed to start DRb server: #{e.message}"
+        raise
+      end
     end
   end
+
+  def stop
+    return unless server_thread&.alive?
+
+    logger.info "Stopping DRb server on port #{port}"
+    DRb.stop_service
+    server_thread.kill if server_thread.alive?
+    self.server_thread = nil
+  end
+
+  private
+
+  attr_reader :node, :port, :logger
+  attr_accessor :server_thread
 end
 ```
 
@@ -51,7 +84,10 @@ module Raft
     def initialize(node_id, port)
       @node_id = node_id
       @uri = "druby://localhost:#{port}"
+      @remote_node = DRbObject.new_with_uri(@uri)
     end
+
+    attr_reader :node_id, :uri, :remote_node
 
     def request_vote(request)
       remote_node.request_vote(request)
@@ -59,12 +95,6 @@ module Raft
 
     def append_entries(request)
       remote_node.append_entries(request)
-    end
-
-    private
-
-    def remote_node
-      @remote_node ||= DRbObject.new_with_uri(uri)
     end
   end
 end
@@ -117,12 +147,13 @@ module Raft
       @election_timer = nil
       @heartbeat_timer = nil
 
+      # Logger
       @logger = Logger.new(STDOUT)
 
-      logger.info "Node #{id} initialized as #{state}"
-
-      # Start election timer
+      # Start election timer (all nodes start as followers)
       start_election_timer
+
+      logger.info "Node #{id} initialized as #{state}"
     end
 
     private
@@ -449,19 +480,32 @@ Let's see our implementation in action! We'll run three nodes and watch them ele
 First, let's add two helper methods to our RaftNode class for setting up the cluster:
 
 ```ruby
-def setup_cluster_ports(cluster_config)
-  cluster_config.each do |node_id, port|
-    next if node_id == id  # Skip self
-    
-    remote_nodes[node_id] = RemoteNode.new(node_id, port)
+def configure_cluster(node_ids_and_ports)
+  # Initialize cluster with predefined nodes and their ports
+  # node_ids_and_ports is a hash like { 'node1' => 8001, 'node2' => 8002, 'node3' => 8003 }
+
+  # Create remote node connections
+  node_ids_and_ports.each do |node_id, node_port|
+    next if node_id == id # Skip self
+
+    remote_nodes[node_id] = RemoteNode.new(node_id, node_port)
+    logger.info "Configured remote node: #{node_id} at port #{node_port}"
   end
-  
-  logger.info "Connected to cluster nodes: #{remote_nodes.keys}"
+
+  logger.info "Cluster configured with #{remote_nodes.size} remote nodes"
 end
 
-def start_drb_server
-  self.drb_server = DRbServer.new(self, port)
-  drb_server.start
+def start_rpc_server
+  # Start DRb server for this node
+  DRb.start_service("druby://localhost:#{port}", self)
+  self.drb_server = DRb.thread
+
+  logger.info "DRb server started on port #{port}"
+end
+
+def stop_rpc_server
+  DRb.stop_service if DRb.primary_server
+  logger.info 'DRb server stopped'
 end
 ```
 
@@ -478,14 +522,16 @@ DEFAULT_CLUSTER = {
 
 # Create and configure the node
 node = Raft::RaftNode.new(node_id, port)
-node.setup_cluster_ports(DEFAULT_CLUSTER)
-node.start_drb_server
+node.configure_cluster(DEFAULT_CLUSTER)
+node.start_rpc_server
 
-loop do
-  sleep(1)
-  if (Time.now.to_i % 10).zero?
-    puts "#{Time.now} - Node #{node_id}: #{node.state} (term #{node.current_term})"
-  end
+# Keep the node running
+begin
+  DRb.thread.join
+rescue Interrupt
+  puts "\nShutting down node #{node_id}..."
+  node.stop_rpc_server
+  exit 0
 end
 ```
 
@@ -555,6 +601,6 @@ Woohoo! This wasn't too hard, was it?
 
 ## What's next?
 
-We've successfully implemented leader election, but a leader without followers isn't very useful. In the next post, we'll implement log replication to make all nodes maintain an identical copy of the system's state even when things go wrong.
+We've successfully implemented leader election, but a leader without followers isn't very useful. [In the next post](/implementing-raft-part-3), we'll implement log replication to make all nodes maintain an identical copy of the system's state even when things go wrong.
 
 Stay tuned for Part 3, where we'll make our cluster actually do something useful!
