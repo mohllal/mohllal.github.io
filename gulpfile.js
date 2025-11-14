@@ -16,14 +16,15 @@ var messages = {
 	jekyllBuild: '<span style="color: grey">Running:</span> $ jekyll build'
 };
 
-var jekyllCommand = (/^win/.test(process.platform)) ? 'jekyll.bat' : 'jekyll';
+var jekyllCommand = (/^win/.test(process.platform)) ? 'jekyll.bat' : 'bundle';
+var jekyllArgs = (/^win/.test(process.platform)) ? ['build'] : ['exec', 'jekyll', 'build'];
 
 /**
  * Build the Jekyll Site
  */
 gulp.task('build', function (done) {
 	browserSync.notify(messages.jekyllBuild);
-	return cp.spawn(jekyllCommand, ['build'], { stdio: 'inherit' })
+	return cp.spawn(jekyllCommand, jekyllArgs, { stdio: 'inherit' })
 		.on('close', done);
 });
 
