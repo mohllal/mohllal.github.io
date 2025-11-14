@@ -122,7 +122,7 @@ table
         margin-top rem(20px)
         padding 0 rem(20px)
 
-.category-title:
+.category-title
     mainFont(300)
     font-size rem(36px)
     margin-top rem(60px)
@@ -137,8 +137,13 @@ table
     margin rem(25px) auto
     +below(cut)
         padding 0 rem(20px)
+    li
+        overflow hidden
     a
-        display block
+        display flex
+        justify-content space-between
+        align-items flex-start
+        gap rem(20px)
         border-bottom 1px solid darken(lightGray,10%)
         padding rem(10px) 0
         text-decoration none
@@ -147,6 +152,7 @@ table
             color hover
             border-bottom 1px solid hover
     .entry-date
-        float right
+        flex-shrink 0
+        white-space nowrap
         +below(cut)
             display none
