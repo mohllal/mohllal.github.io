@@ -6,7 +6,7 @@ description: Explore multi-part posts organized into complete series to follow a
 ---
 
 {% for category in site.categories %}
-<span class="category-title" id="{{ category[0] | slugify }}">{{ category[0] | capitalize }}</span>
+<span class="category-title" id="{{ category[0] | slugify }}">{{ category[0] }}</span>
 <ul class="post-list">
   {% assign pages_list = category[1] %}
   {% for post in pages_list reversed %}
