@@ -6,7 +6,8 @@ description: 'Multithreading in Node.js using the worker threads module!'
 image: '/assets/images/posts/nodejs-multithreading/preview.png'
 tags:
 - nodejs
-- multithreading
+- concurrency
+- performance
 excerpt: 'Multithreading in Node.js using the worker threads module!'
 ---
 

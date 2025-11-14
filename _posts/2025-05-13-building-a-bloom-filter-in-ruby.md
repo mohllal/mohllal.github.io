@@ -5,8 +5,8 @@ date: 2025-05-13
 description: "Building blazing-fast and memory-efficient probabilistic lookups in Ruby"
 image: '/assets/images/posts/building-a-bloom-filter-in-ruby/preview.png'
 tags:
-- bloom filter
-- probabilistic data structure
+- ruby
+- probabilistic data structures
 excerpt: "Building blazing-fast and memory-efficient probabilistic lookups in Ruby"
 ---
 

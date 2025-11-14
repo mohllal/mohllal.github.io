@@ -5,6 +5,8 @@ date: 2025-03-15
 description: 'How TLS ensures intermediaries can’t inspect, modify, or disrupt the web traffic'
 image: '/assets/images/posts/tls-and-intermediaries/preview.png'
 tags:
+- networking
+- security
 - tls
 - http
 excerpt: 'How TLS ensures intermediaries can’t inspect, modify, or disrupt the web traffic'

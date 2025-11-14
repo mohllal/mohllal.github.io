@@ -5,9 +5,10 @@ date: 2025-08-05
 description: "Database connections are expensive, let's explore why and how PgBouncer can save your database from drowning in connections."
 image: '/assets/images/posts/database-connection-pooling-with-pgbouncer/preview.png'
 tags:
-- database
-- connection pooling
+- databases
+- postgresql
 - pgbouncer
+- performance
 excerpt: "Database connections are expensive, let's explore why and how PgBouncer can save your database from drowning in connections."
 ---
 

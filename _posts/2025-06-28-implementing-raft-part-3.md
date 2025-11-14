@@ -2,11 +2,14 @@
 layout: post
 title: "Implementing Raft: Part 3 - Log Replication"
 date: 2025-06-28
+category: Implementing Raft
 description: "From heartbeats to data synchronization: implementing the core logic that keeps distributed nodes in perfect sync, even when networks fail and servers crash."
 image: '/assets/images/posts/implementing-raft-part-3/preview.png'
 tags:
+- ruby
+- distributed systems
 - raft
-- distributed consensus
+- consensus
 excerpt: "From heartbeats to data synchronization: implementing the core logic that keeps distributed nodes in perfect sync, even when networks fail and servers crash."
 ---
 

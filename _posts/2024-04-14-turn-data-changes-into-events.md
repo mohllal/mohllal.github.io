@@ -5,8 +5,10 @@ date: 2024-04-14
 description: 'Capture data changes and deliver events to downstream systems with an event-centric CDC pipeline.'
 image: '/assets/images/posts/turn-data-changes-into-events/preview.png'
 tags:
-- change data capture
+- databases
+- cdc
 - event-driven architecture
+- aws
 excerpt: 'Capture data changes and deliver events to downstream systems with an event-centric CDC pipeline.'
 ---
 

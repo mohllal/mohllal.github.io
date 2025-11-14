@@ -5,8 +5,9 @@ date: 2025-01-01
 description: 'When latency matters, switch off Nagle’s Algorithm: TCP_NODELAY delivers small packets without delay.'
 image: '/assets/images/posts/tcp-nagle-algorithm/preview.png'
 tags:
+- networking
 - tcp
-- http
+- performance
 excerpt: 'When latency matters, switch off Nagle’s Algorithm: TCP_NODELAY delivers small packets without delay.'
 ---
 
