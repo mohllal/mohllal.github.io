@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Implementing Raft: Part 3 - Log Replication"
+title: "Implementing Raft, Part 3: Log Replication"
 date: 2025-06-28
 category: Implementing Raft
 description: "From heartbeats to data synchronization: implementing the core logic that keeps distributed nodes in perfect sync, even when networks fail and servers crash."

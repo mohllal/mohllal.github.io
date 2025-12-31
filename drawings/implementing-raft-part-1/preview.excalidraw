@@ -313,7 +313,8 @@
         "fixedPoint": [
           -0.028190107034312645,
           0.4839534640455018
-        ]
+        ],
+        "mode": "orbit"
       },
       "endBinding": {
         "elementId": "-QYMqsv2fR6SYdB9fxcEH",
@@ -322,7 +323,8 @@
         "fixedPoint": [
           -0.028190107034312645,
           0.5967783406120407
-        ]
+        ],
+        "mode": "orbit"
       },
       "startArrowhead": null,
       "endArrowhead": "arrow",
@@ -442,7 +444,8 @@
         "fixedPoint": [
           1.0281901070343127,
           0.6283508969577639
-        ]
+        ],
+        "mode": "orbit"
       },
       "endBinding": {
         "elementId": "NNzrn7sWz46HYdNj9J3gH",
@@ -451,7 +454,8 @@
         "fixedPoint": [
           0.5848585704963268,
           1.0634700252888383
-        ]
+        ],
+        "mode": "orbit"
       },
       "startArrowhead": null,
       "endArrowhead": "arrow",
@@ -578,7 +582,8 @@
         "fixedPoint": [
           0.7780928716117274,
           1.1215162091080906
-        ]
+        ],
+        "mode": "orbit"
       },
       "endBinding": {
         "elementId": "wdfPKqU4FmqbwsOy1EOvz",
@@ -587,7 +592,8 @@
         "fixedPoint": [
           0.4989205755234628,
           1.1215162091080906
-        ]
+        ],
+        "mode": "orbit"
       },
       "startArrowhead": null,
       "endArrowhead": "arrow",
@@ -703,7 +709,8 @@
         "fixedPoint": [
           1.0281901070343127,
           0.4977513494671436
-        ]
+        ],
+        "mode": "orbit"
       },
       "endBinding": {
         "elementId": "NNzrn7sWz46HYdNj9J3gH",
@@ -712,7 +719,8 @@
         "fixedPoint": [
           1.0281901070343127,
           0.35959760535428814
-        ]
+        ],
+        "mode": "orbit"
       },
       "startArrowhead": null,
       "endArrowhead": "arrow",
@@ -828,7 +836,8 @@
         "fixedPoint": [
           0.0634057417337317,
           1.0485458756190307
-        ]
+        ],
+        "mode": "orbit"
       },
       "endBinding": {
         "elementId": "-QYMqsv2fR6SYdB9fxcEH",
@@ -837,7 +846,8 @@
         "fixedPoint": [
           0.49841920059512185,
           1.0634700252888383
-        ]
+        ],
+        "mode": "orbit"
       },
       "startArrowhead": null,
       "endArrowhead": "arrow",
@@ -898,8 +908,8 @@
     {
       "id": "yWm0K5tI8PEaj9rSSQxM5",
       "type": "rectangle",
-      "x": 620.2321883913064,
-      "y": -58.27605958968945,
+      "x": 620.1110946413064,
+      "y": -58.39715333968945,
       "width": 544.5585937499998,
       "height": 294.9040080942584,
       "angle": 0,
@@ -917,8 +927,8 @@
         "type": 3
       },
       "seed": 1652815458,
-      "version": 2016,
-      "versionNonce": 1854555231,
+      "version": 2017,
+      "versionNonce": 1287791247,
       "isDeleted": false,
       "boundElements": [
         {
@@ -926,16 +936,16 @@
           "type": "text"
         }
       ],
-      "updated": 1749316689734,
+      "updated": 1767179873257,
       "link": null,
       "locked": false
     },
     {
       "id": "NFGHKF59cucuPd2yWEilu",
       "type": "text",
-      "x": 667.6824905153297,
-      "y": -53.27605958968945,
-      "width": 449.6579895019531,
+      "x": 672.768977331736,
+      "y": -53.39715333968945,
+      "width": 439.2428283691406,
       "height": 47.008562215056145,
       "angle": 0,
       "strokeColor": "#1e1e1e",
@@ -950,20 +960,20 @@
       "index": "aJt",
       "roundness": null,
       "seed": 883715390,
-      "version": 2034,
-      "versionNonce": 916480127,
+      "version": 2047,
+      "versionNonce": 526076865,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1749316689734,
+      "updated": 1767179883127,
       "link": null,
       "locked": false,
-      "text": "Implementing Raft: Part 1 - The Why and How of\nConsensus in Distributed Systems",
+      "text": "Implementing Raft, Part 1: The Why and How of\nConsensus in Distributed Systems",
       "fontSize": 18.80342488602246,
       "fontFamily": 5,
       "textAlign": "center",
       "verticalAlign": "top",
       "containerId": "yWm0K5tI8PEaj9rSSQxM5",
-      "originalText": "Implementing Raft: Part 1 - The Why and How of Consensus in Distributed Systems",
+      "originalText": "Implementing Raft, Part 1: The Why and How of Consensus in Distributed Systems",
       "autoResize": true,
       "lineHeight": 1.25
     }

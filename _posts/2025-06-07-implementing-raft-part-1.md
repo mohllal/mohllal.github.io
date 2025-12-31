@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Implementing Raft: Part 1 - The Why and How of Consensus in Distributed Systems"
+title: "Implementing Raft, Part 1: Consensus in Distributed Systems"
 date: 2025-06-07
 category: Implementing Raft
 description: "Before we code, let's dive into the core concepts of distributed consensus and see how Raft elects a leader to keep distributed systems in sync, even when things go wrong."

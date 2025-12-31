@@ -313,7 +313,8 @@
         "fixedPoint": [
           -0.028190107034312645,
           0.4839534640455018
-        ]
+        ],
+        "mode": "orbit"
       },
       "endBinding": {
         "elementId": "-QYMqsv2fR6SYdB9fxcEH",
@@ -322,7 +323,8 @@
         "fixedPoint": [
           -0.028190107034312645,
           0.5967783406120407
-        ]
+        ],
+        "mode": "orbit"
       },
       "startArrowhead": null,
       "endArrowhead": "arrow",
@@ -442,7 +444,8 @@
         "fixedPoint": [
           1.0281901070343127,
           0.6283508969577639
-        ]
+        ],
+        "mode": "orbit"
       },
       "endBinding": {
         "elementId": "NNzrn7sWz46HYdNj9J3gH",
@@ -451,7 +454,8 @@
         "fixedPoint": [
           0.5848585704963268,
           1.0634700252888383
-        ]
+        ],
+        "mode": "orbit"
       },
       "startArrowhead": null,
       "endArrowhead": "arrow",
@@ -578,7 +582,8 @@
         "fixedPoint": [
           0.7780928716117274,
           1.1215162091080906
-        ]
+        ],
+        "mode": "orbit"
       },
       "endBinding": {
         "elementId": "wdfPKqU4FmqbwsOy1EOvz",
@@ -587,7 +592,8 @@
         "fixedPoint": [
           0.4989205755234628,
           1.1215162091080906
-        ]
+        ],
+        "mode": "orbit"
       },
       "startArrowhead": null,
       "endArrowhead": "arrow",
@@ -703,7 +709,8 @@
         "fixedPoint": [
           1.0281901070343127,
           0.4977513494671436
-        ]
+        ],
+        "mode": "orbit"
       },
       "endBinding": {
         "elementId": "NNzrn7sWz46HYdNj9J3gH",
@@ -712,7 +719,8 @@
         "fixedPoint": [
           1.0281901070343127,
           0.35959760535428814
-        ]
+        ],
+        "mode": "orbit"
       },
       "startArrowhead": null,
       "endArrowhead": "arrow",
@@ -828,7 +836,8 @@
         "fixedPoint": [
           0.0634057417337317,
           1.0485458756190307
-        ]
+        ],
+        "mode": "orbit"
       },
       "endBinding": {
         "elementId": "-QYMqsv2fR6SYdB9fxcEH",
@@ -837,7 +846,8 @@
         "fixedPoint": [
           0.49841920059512185,
           1.0634700252888383
-        ]
+        ],
+        "mode": "orbit"
       },
       "startArrowhead": null,
       "endArrowhead": "arrow",
@@ -898,7 +908,7 @@
     {
       "id": "yWm0K5tI8PEaj9rSSQxM5",
       "type": "rectangle",
-      "x": 620.2321883913064,
+      "x": 620.1032821413064,
       "y": -58.15887208968945,
       "width": 544.5585937499998,
       "height": 294.9040080942584,
@@ -917,8 +927,8 @@
         "type": 3
       },
       "seed": 1652815458,
-      "version": 2017,
-      "versionNonce": 1088075366,
+      "version": 2018,
+      "versionNonce": 615787375,
       "isDeleted": false,
       "boundElements": [
         {
@@ -926,16 +936,16 @@
           "type": "text"
         }
       ],
-      "updated": 1749855001565,
+      "updated": 1767179913331,
       "link": null,
       "locked": false
     },
     {
       "id": "NFGHKF59cucuPd2yWEilu",
       "type": "text",
-      "x": 689.6314498659157,
+      "x": 694.710139441111,
       "y": -53.15887208968945,
-      "width": 405.76007080078125,
+      "width": 395.3448791503906,
       "height": 23.504281107528072,
       "angle": 0,
       "strokeColor": "#1e1e1e",
@@ -950,20 +960,20 @@
       "index": "aJt",
       "roundness": null,
       "seed": 883715390,
-      "version": 2039,
-      "versionNonce": 1008353830,
+      "version": 2058,
+      "versionNonce": 625101217,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1749855276563,
+      "updated": 1767179917783,
       "link": null,
       "locked": false,
-      "text": "Implementing Raft: Part 2 - Leader Election",
+      "text": "Implementing Raft, Part 2: Leader Election",
       "fontSize": 18.80342488602246,
       "fontFamily": 5,
       "textAlign": "center",
       "verticalAlign": "top",
       "containerId": "yWm0K5tI8PEaj9rSSQxM5",
-      "originalText": "Implementing Raft: Part 2 - Leader Election",
+      "originalText": "Implementing Raft, Part 2: Leader Election",
       "autoResize": true,
       "lineHeight": 1.25
     }

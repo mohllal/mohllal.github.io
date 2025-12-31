@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Implementing Raft: Part 2 - Leader Election"
+title: "Implementing Raft, Part 2: Leader Election"
 date: 2025-06-14
 category: Implementing Raft
 description: "Let's bring Raft's leader election to life with Ruby code. We'll implement the core logic that allows nodes to elect a leader, even when things go wrong."

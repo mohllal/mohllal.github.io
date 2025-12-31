@@ -41,10 +41,10 @@
     {
       "id": "aWq8H7heJQPMziAaDo6PQ",
       "type": "text",
-      "x": 615.9878142404914,
+      "x": 706.9878447580695,
       "y": 289.95006130526656,
-      "width": 598.2197265625,
-      "height": 35,
+      "width": 416.21966552734375,
+      "height": 25,
       "angle": 0,
       "strokeColor": "#1e1e1e",
       "backgroundColor": "transparent",
@@ -58,20 +58,20 @@
       "index": "aH",
       "roundness": null,
       "seed": 572555475,
-      "version": 1644,
-      "versionNonce": 1715326387,
+      "version": 1655,
+      "versionNonce": 1210626895,
       "isDeleted": false,
-      "boundElements": null,
-      "updated": 1751153641081,
+      "boundElements": [],
+      "updated": 1767179951446,
       "link": null,
       "locked": false,
-      "text": "Implementing Raft: Part 3 - Log Replication",
-      "fontSize": 28,
+      "text": "Implementing Raft, Part 3: Log Replication",
+      "fontSize": 20,
       "fontFamily": 5,
       "textAlign": "center",
       "verticalAlign": "top",
       "containerId": "Y9C28Nsa-T18WD6iIeGwB",
-      "originalText": "Implementing Raft: Part 3 - Log Replication",
+      "originalText": "Implementing Raft, Part 3: Log Replication",
       "autoResize": true,
       "lineHeight": 1.25
     },
@@ -383,7 +383,8 @@
         "fixedPoint": [
           -0.03820211305437831,
           0.4977272727272722
-        ]
+        ],
+        "mode": "orbit"
       },
       "endBinding": {
         "elementId": "MKTsxINaglxscIt8XnkCF",
@@ -392,7 +393,8 @@
         "fixedPoint": [
           0.2592125860989373,
           -0.11363636363636363
-        ]
+        ],
+        "mode": "orbit"
       },
       "startArrowhead": null,
       "endArrowhead": "arrow",
@@ -534,7 +536,8 @@
         "fixedPoint": [
           1.0400751408891682,
           0.3801491477272624
-        ]
+        ],
+        "mode": "orbit"
       },
       "endBinding": {
         "elementId": "ClvyNibxe05EvM5Zs5BqY",
@@ -543,7 +546,8 @@
         "fixedPoint": [
           0.05071379786065389,
           1.1136363636363635
-        ]
+        ],
+        "mode": "orbit"
       },
       "startArrowhead": null,
       "endArrowhead": "arrow",
@@ -674,7 +678,8 @@
         "fixedPoint": [
           0.4326935996399773,
           -0.11363636363636492
-        ]
+        ],
+        "mode": "orbit"
       },
       "endBinding": null,
       "startArrowhead": null,
@@ -806,7 +811,8 @@
         "fixedPoint": [
           0.8986300961021922,
           1.1136363636363635
-        ]
+        ],
+        "mode": "orbit"
       },
       "endBinding": {
         "elementId": "DvknW2gsQnDAa-9q8bnTc",
@@ -815,7 +821,8 @@
         "fixedPoint": [
           -0.04007514088916628,
           0.4977272727272722
-        ]
+        ],
+        "mode": "orbit"
       },
       "startArrowhead": null,
       "endArrowhead": "arrow",
@@ -859,7 +866,7 @@
       "version": 26,
       "versionNonce": 513742909,
       "isDeleted": false,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1751153594169,
       "link": null,
       "locked": false,

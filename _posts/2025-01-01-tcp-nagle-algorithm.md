@@ -26,7 +26,7 @@ This post explains how Nagle’s algorithm works, why disabling it might be bene
 
 ## What is Nagle's algorithm?
 
-Nagle’s algorithm was introduced by John Nagle, [RFC 896](https://datatracker.ietf.org/doc/html/rfc896), to address the *“Small-Packet Problem”* in TCP, which arises when a stream of very small data segments (e.g., keystrokes or one-byte messages) flood the network, causing excessive network overhead.
+Nagle’s algorithm was introduced by John Nagle, [RFC 896](https://datatracker.ietf.org/doc/html/rfc896), to address the *"Small-Packet Problem"* in TCP, which arises when a stream of very small data segments (e.g., keystrokes or one-byte messages) flood the network, causing excessive network overhead.
 
 Each TCP packet carries headers (TCP, IP, Ethernet) that can amount to 40+ bytes of overhead on top of the actual payload. If an application sends many small packets (e.g., 1-byte payloads each time), network overhead skyrockets.
 
@@ -73,7 +73,7 @@ However, mixing Nagle’s Algorithm with Delayed ACK may create **a feedback loo
 
 Result: Both sides wait- **Nagle's Algorithm waits for the ACK to send more data, and Delayed ACK waits to send the ACK**, creating latency spikes.
 
-This is sometimes referred to as the *“Silly Window Syndrome”* or an extension of it, where neither side proceeds quickly due to mismatched waiting strategies.
+This is sometimes referred to as the *"Silly Window Syndrome"* or an extension of it, where neither side proceeds quickly due to mismatched waiting strategies.
 
 <blockquote cite="https://news.ycombinator.com/item?id=10608356">
   <p>
