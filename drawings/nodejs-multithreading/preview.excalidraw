@@ -4,82 +4,6 @@
   "source": "https://excalidraw.com",
   "elements": [
     {
-      "id": "hspp71MEHkvy7LcS81VyA",
-      "type": "rectangle",
-      "x": 1302.296992112847,
-      "y": -601.8608107947111,
-      "width": 783.7196318457353,
-      "height": 401.78715978386543,
-      "angle": 0,
-      "strokeColor": "#1e1e1e",
-      "backgroundColor": "transparent",
-      "fillStyle": "solid",
-      "strokeWidth": 2,
-      "strokeStyle": "solid",
-      "roughness": 1,
-      "opacity": 100,
-      "groupIds": [
-        "lme9mJ-JXEzWZIumKhL0-"
-      ],
-      "frameId": null,
-      "index": "b2I4",
-      "roundness": {
-        "type": 3
-      },
-      "seed": 564675840,
-      "version": 3051,
-      "versionNonce": 608160512,
-      "isDeleted": false,
-      "boundElements": [
-        {
-          "type": "text",
-          "id": "-LapnxfuMRclo7n1ksrPX"
-        }
-      ],
-      "updated": 1734304208200,
-      "link": null,
-      "locked": false
-    },
-    {
-      "id": "-LapnxfuMRclo7n1ksrPX",
-      "type": "text",
-      "x": 1551.9208766392303,
-      "y": -596.8608107947111,
-      "width": 284.47186279296875,
-      "height": 33.7610971387906,
-      "angle": 0,
-      "strokeColor": "#1e1e1e",
-      "backgroundColor": "transparent",
-      "fillStyle": "solid",
-      "strokeWidth": 2,
-      "strokeStyle": "solid",
-      "roughness": 1,
-      "opacity": 100,
-      "groupIds": [
-        "lme9mJ-JXEzWZIumKhL0-"
-      ],
-      "frameId": null,
-      "index": "b2I8",
-      "roundness": null,
-      "seed": 1979132672,
-      "version": 3830,
-      "versionNonce": 414606592,
-      "isDeleted": false,
-      "boundElements": null,
-      "updated": 1734304208200,
-      "link": null,
-      "locked": false,
-      "text": "Nodejs Multithreading",
-      "fontSize": 27.008877711032483,
-      "fontFamily": 5,
-      "textAlign": "center",
-      "verticalAlign": "top",
-      "containerId": "hspp71MEHkvy7LcS81VyA",
-      "originalText": "Nodejs Multithreading",
-      "autoResize": true,
-      "lineHeight": 1.25
-    },
-    {
       "id": "dknFEbsQvOkfdZS3omOCM",
       "type": "rectangle",
       "x": 1608.5779791735242,
@@ -95,8 +19,7 @@
       "roughness": 1,
       "opacity": 100,
       "groupIds": [
-        "0s5AuGoNka6kk2t61-e5N",
-        "lme9mJ-JXEzWZIumKhL0-"
+        "0s5AuGoNka6kk2t61-e5N"
       ],
       "frameId": null,
       "index": "b2IC",
@@ -150,15 +73,14 @@
       "height": 44,
       "angle": 0,
       "strokeColor": "#1e1e1e",
-      "backgroundColor": "transparent",
+      "backgroundColor": "#e7f5ff",
       "fillStyle": "solid",
       "strokeWidth": 2,
       "strokeStyle": "solid",
       "roughness": 1,
       "opacity": 100,
       "groupIds": [
-        "0s5AuGoNka6kk2t61-e5N",
-        "lme9mJ-JXEzWZIumKhL0-"
+        "0s5AuGoNka6kk2t61-e5N"
       ],
       "frameId": null,
       "index": "b2IG",
@@ -201,8 +123,7 @@
       "roughness": 1,
       "opacity": 100,
       "groupIds": [
-        "0s5AuGoNka6kk2t61-e5N",
-        "lme9mJ-JXEzWZIumKhL0-"
+        "0s5AuGoNka6kk2t61-e5N"
       ],
       "frameId": null,
       "index": "b2IK",
@@ -252,15 +173,14 @@
       "height": 44,
       "angle": 0,
       "strokeColor": "#1e1e1e",
-      "backgroundColor": "transparent",
+      "backgroundColor": "#e7f5ff",
       "fillStyle": "solid",
       "strokeWidth": 2,
       "strokeStyle": "solid",
       "roughness": 1,
       "opacity": 100,
       "groupIds": [
-        "0s5AuGoNka6kk2t61-e5N",
-        "lme9mJ-JXEzWZIumKhL0-"
+        "0s5AuGoNka6kk2t61-e5N"
       ],
       "frameId": null,
       "index": "b2IO",
@@ -299,8 +219,7 @@
       "roughness": 1,
       "opacity": 100,
       "groupIds": [
-        "0s5AuGoNka6kk2t61-e5N",
-        "lme9mJ-JXEzWZIumKhL0-"
+        "0s5AuGoNka6kk2t61-e5N"
       ],
       "frameId": null,
       "index": "b2IV",
@@ -367,8 +286,7 @@
       "roughness": 1,
       "opacity": 100,
       "groupIds": [
-        "0s5AuGoNka6kk2t61-e5N",
-        "lme9mJ-JXEzWZIumKhL0-"
+        "0s5AuGoNka6kk2t61-e5N"
       ],
       "frameId": null,
       "index": "b2IZ",
@@ -435,8 +353,7 @@
       "roughness": 1,
       "opacity": 100,
       "groupIds": [
-        "0s5AuGoNka6kk2t61-e5N",
-        "lme9mJ-JXEzWZIumKhL0-"
+        "0s5AuGoNka6kk2t61-e5N"
       ],
       "frameId": null,
       "index": "b2Id",
@@ -503,8 +420,7 @@
       "roughness": 1,
       "opacity": 100,
       "groupIds": [
-        "0s5AuGoNka6kk2t61-e5N",
-        "lme9mJ-JXEzWZIumKhL0-"
+        "0s5AuGoNka6kk2t61-e5N"
       ],
       "frameId": null,
       "index": "b2Il",
@@ -571,8 +487,7 @@
       "roughness": 1,
       "opacity": 100,
       "groupIds": [
-        "0s5AuGoNka6kk2t61-e5N",
-        "lme9mJ-JXEzWZIumKhL0-"
+        "0s5AuGoNka6kk2t61-e5N"
       ],
       "frameId": null,
       "index": "b2Ip",
@@ -639,8 +554,7 @@
       "roughness": 1,
       "opacity": 100,
       "groupIds": [
-        "0s5AuGoNka6kk2t61-e5N",
-        "lme9mJ-JXEzWZIumKhL0-"
+        "0s5AuGoNka6kk2t61-e5N"
       ],
       "frameId": null,
       "index": "b2It",
@@ -707,8 +621,7 @@
       "roughness": 1,
       "opacity": 100,
       "groupIds": [
-        "0s5AuGoNka6kk2t61-e5N",
-        "lme9mJ-JXEzWZIumKhL0-"
+        "0s5AuGoNka6kk2t61-e5N"
       ],
       "frameId": null,
       "index": "b2J",
@@ -775,8 +688,7 @@
       "roughness": 1,
       "opacity": 100,
       "groupIds": [
-        "0s5AuGoNka6kk2t61-e5N",
-        "lme9mJ-JXEzWZIumKhL0-"
+        "0s5AuGoNka6kk2t61-e5N"
       ],
       "frameId": null,
       "index": "b2J8",
@@ -791,7 +703,7 @@
       "locked": false,
       "text": "Event Loop",
       "fontSize": 20,
-      "fontFamily": 5,
+      "fontFamily": 8,
       "textAlign": "center",
       "verticalAlign": "middle",
       "containerId": "dknFEbsQvOkfdZS3omOCM",
@@ -815,8 +727,7 @@
       "roughness": 1,
       "opacity": 100,
       "groupIds": [
-        "0s5AuGoNka6kk2t61-e5N",
-        "lme9mJ-JXEzWZIumKhL0-"
+        "0s5AuGoNka6kk2t61-e5N"
       ],
       "frameId": null,
       "index": "b2JG",
@@ -831,7 +742,7 @@
       "locked": false,
       "text": "Asynchronous I/O Tasks",
       "fontSize": 20,
-      "fontFamily": 5,
+      "fontFamily": 8,
       "textAlign": "center",
       "verticalAlign": "middle",
       "containerId": "viYICxnJetHFO0flXflIw",
@@ -855,8 +766,7 @@
       "roughness": 1,
       "opacity": 100,
       "groupIds": [
-        "0s5AuGoNka6kk2t61-e5N",
-        "lme9mJ-JXEzWZIumKhL0-"
+        "0s5AuGoNka6kk2t61-e5N"
       ],
       "frameId": null,
       "index": "b2JV",
@@ -871,7 +781,7 @@
       "locked": false,
       "text": "Worker Threads",
       "fontSize": 20,
-      "fontFamily": 5,
+      "fontFamily": 8,
       "textAlign": "center",
       "verticalAlign": "middle",
       "containerId": "7oxspMQAey8tRX46dSrh5",
@@ -895,8 +805,7 @@
       "roughness": 1,
       "opacity": 100,
       "groupIds": [
-        "0s5AuGoNka6kk2t61-e5N",
-        "lme9mJ-JXEzWZIumKhL0-"
+        "0s5AuGoNka6kk2t61-e5N"
       ],
       "frameId": null,
       "index": "b2Jd",
@@ -911,7 +820,7 @@
       "locked": false,
       "text": "CPU-Intensive Tasks",
       "fontSize": 20,
-      "fontFamily": 5,
+      "fontFamily": 8,
       "textAlign": "center",
       "verticalAlign": "middle",
       "containerId": "mU2pJG008iiIKSGvundjo",
@@ -935,8 +844,7 @@
       "roughness": 1,
       "opacity": 100,
       "groupIds": [
-        "0s5AuGoNka6kk2t61-e5N",
-        "lme9mJ-JXEzWZIumKhL0-"
+        "0s5AuGoNka6kk2t61-e5N"
       ],
       "frameId": null,
       "index": "b2Jl",
@@ -951,7 +859,7 @@
       "locked": false,
       "text": "Manages",
       "fontSize": 20,
-      "fontFamily": 5,
+      "fontFamily": 8,
       "textAlign": "center",
       "verticalAlign": "middle",
       "containerId": "1l8T6-lqlsbfiou4Chqnt",
@@ -975,8 +883,7 @@
       "roughness": 1,
       "opacity": 100,
       "groupIds": [
-        "0s5AuGoNka6kk2t61-e5N",
-        "lme9mJ-JXEzWZIumKhL0-"
+        "0s5AuGoNka6kk2t61-e5N"
       ],
       "frameId": null,
       "index": "b2K",
@@ -991,7 +898,7 @@
       "locked": false,
       "text": "Non-blocking Ops",
       "fontSize": 20,
-      "fontFamily": 5,
+      "fontFamily": 8,
       "textAlign": "center",
       "verticalAlign": "middle",
       "containerId": "oldoPGS9NgPWX5EDahq6D",
@@ -1015,8 +922,7 @@
       "roughness": 1,
       "opacity": 100,
       "groupIds": [
-        "0s5AuGoNka6kk2t61-e5N",
-        "lme9mJ-JXEzWZIumKhL0-"
+        "0s5AuGoNka6kk2t61-e5N"
       ],
       "frameId": null,
       "index": "b2KG",
@@ -1031,7 +937,7 @@
       "locked": false,
       "text": "Handles",
       "fontSize": 20,
-      "fontFamily": 5,
+      "fontFamily": 8,
       "textAlign": "center",
       "verticalAlign": "middle",
       "containerId": "eGp0I9rg9zOxjZUHZT6Oj",
@@ -1055,8 +961,7 @@
       "roughness": 1,
       "opacity": 100,
       "groupIds": [
-        "0s5AuGoNka6kk2t61-e5N",
-        "lme9mJ-JXEzWZIumKhL0-"
+        "0s5AuGoNka6kk2t61-e5N"
       ],
       "frameId": null,
       "index": "b2KV",
@@ -1071,7 +976,7 @@
       "locked": false,
       "text": "Offloads Tasks",
       "fontSize": 20,
-      "fontFamily": 5,
+      "fontFamily": 8,
       "textAlign": "center",
       "verticalAlign": "middle",
       "containerId": "wMDzBW0BETSUEQpmex7fE",
@@ -1095,8 +1000,7 @@
       "roughness": 1,
       "opacity": 100,
       "groupIds": [
-        "0s5AuGoNka6kk2t61-e5N",
-        "lme9mJ-JXEzWZIumKhL0-"
+        "0s5AuGoNka6kk2t61-e5N"
       ],
       "frameId": null,
       "index": "b2L",
@@ -1111,7 +1015,7 @@
       "locked": false,
       "text": "Message Channels",
       "fontSize": 20,
-      "fontFamily": 5,
+      "fontFamily": 8,
       "textAlign": "center",
       "verticalAlign": "middle",
       "containerId": "iFUNH0mMtn1a6Vb6DThJS",
@@ -1135,8 +1039,7 @@
       "roughness": 1,
       "opacity": 100,
       "groupIds": [
-        "0s5AuGoNka6kk2t61-e5N",
-        "lme9mJ-JXEzWZIumKhL0-"
+        "0s5AuGoNka6kk2t61-e5N"
       ],
       "frameId": null,
       "index": "b2LV",
@@ -1151,7 +1054,7 @@
       "locked": false,
       "text": "Communicates",
       "fontSize": 20,
-      "fontFamily": 5,
+      "fontFamily": 8,
       "textAlign": "center",
       "verticalAlign": "middle",
       "containerId": "YmtkD7AHeDSxeCkOWUvHa",
@@ -1175,8 +1078,7 @@
       "roughness": 1,
       "opacity": 100,
       "groupIds": [
-        "0s5AuGoNka6kk2t61-e5N",
-        "lme9mJ-JXEzWZIumKhL0-"
+        "0s5AuGoNka6kk2t61-e5N"
       ],
       "frameId": null,
       "index": "b2M",
@@ -1191,7 +1093,7 @@
       "locked": false,
       "text": "Returns Results",
       "fontSize": 20,
-      "fontFamily": 5,
+      "fontFamily": 8,
       "textAlign": "center",
       "verticalAlign": "middle",
       "containerId": "q--ZbBf4pLPtfqwjtAqaM",

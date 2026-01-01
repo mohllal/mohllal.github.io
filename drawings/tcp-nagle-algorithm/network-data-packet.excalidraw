@@ -4,80 +4,6 @@
   "source": "https://excalidraw.com",
   "elements": [
     {
-      "id": "HAZIYk0p4qGBZ71XdpyVy",
-      "type": "rectangle",
-      "x": 196.38390947156142,
-      "y": 1330.1319725458834,
-      "width": 945.0746845066456,
-      "height": 146.14441445232967,
-      "angle": 0,
-      "strokeColor": "#1e1e1e",
-      "backgroundColor": "transparent",
-      "fillStyle": "solid",
-      "strokeWidth": 2,
-      "strokeStyle": "solid",
-      "roughness": 1,
-      "opacity": 100,
-      "groupIds": [
-        "RKTIriZvRXxZCiBwGgPrd"
-      ],
-      "frameId": null,
-      "index": "b4Fn",
-      "roundness": null,
-      "seed": 996652197,
-      "version": 1676,
-      "versionNonce": 2135785381,
-      "isDeleted": false,
-      "boundElements": [
-        {
-          "type": "text",
-          "id": "hd47XXadTEzL8ZxgEquaJ"
-        }
-      ],
-      "updated": 1735686116503,
-      "link": null,
-      "locked": false
-    },
-    {
-      "id": "hd47XXadTEzL8ZxgEquaJ",
-      "type": "text",
-      "x": 515.8019890295717,
-      "y": 1335.1319725458834,
-      "width": 306.238525390625,
-      "height": 34.82000456827312,
-      "angle": 0,
-      "strokeColor": "#1e1e1e",
-      "backgroundColor": "transparent",
-      "fillStyle": "solid",
-      "strokeWidth": 2,
-      "strokeStyle": "solid",
-      "roughness": 1,
-      "opacity": 100,
-      "groupIds": [
-        "RKTIriZvRXxZCiBwGgPrd"
-      ],
-      "frameId": null,
-      "index": "b4Fp",
-      "roundness": null,
-      "seed": 1614010373,
-      "version": 1825,
-      "versionNonce": 43177411,
-      "isDeleted": false,
-      "boundElements": [],
-      "updated": 1735747551345,
-      "link": null,
-      "locked": false,
-      "text": "Network Data Packet ",
-      "fontSize": 27.856003654618494,
-      "fontFamily": 5,
-      "textAlign": "center",
-      "verticalAlign": "top",
-      "containerId": "HAZIYk0p4qGBZ71XdpyVy",
-      "originalText": "Network Data Packet ",
-      "autoResize": true,
-      "lineHeight": 1.25
-    },
-    {
       "id": "leshTA7HwQNQfHA0F8aY4",
       "type": "rectangle",
       "x": 215.81533308267262,
@@ -92,9 +18,7 @@
       "strokeStyle": "solid",
       "roughness": 1,
       "opacity": 100,
-      "groupIds": [
-        "RKTIriZvRXxZCiBwGgPrd"
-      ],
+      "groupIds": [],
       "frameId": null,
       "index": "b4Ft",
       "roundness": null,
@@ -127,9 +51,7 @@
       "strokeStyle": "solid",
       "roughness": 1,
       "opacity": 100,
-      "groupIds": [
-        "RKTIriZvRXxZCiBwGgPrd"
-      ],
+      "groupIds": [],
       "frameId": null,
       "index": "b4Fx",
       "roundness": null,
@@ -162,9 +84,7 @@
       "strokeStyle": "solid",
       "roughness": 1,
       "opacity": 100,
-      "groupIds": [
-        "RKTIriZvRXxZCiBwGgPrd"
-      ],
+      "groupIds": [],
       "frameId": null,
       "index": "b4G",
       "roundness": null,
@@ -197,9 +117,7 @@
       "strokeStyle": "solid",
       "roughness": 1,
       "opacity": 100,
-      "groupIds": [
-        "RKTIriZvRXxZCiBwGgPrd"
-      ],
+      "groupIds": [],
       "frameId": null,
       "index": "b4GV",
       "roundness": null,
@@ -213,7 +131,7 @@
       "locked": false,
       "text": "IP Header\n(20 bytes)",
       "fontSize": 20,
-      "fontFamily": 5,
+      "fontFamily": 8,
       "textAlign": "center",
       "verticalAlign": "middle",
       "containerId": "leshTA7HwQNQfHA0F8aY4",
@@ -236,9 +154,7 @@
       "strokeStyle": "solid",
       "roughness": 1,
       "opacity": 100,
-      "groupIds": [
-        "RKTIriZvRXxZCiBwGgPrd"
-      ],
+      "groupIds": [],
       "frameId": null,
       "index": "b4H",
       "roundness": null,
@@ -252,7 +168,7 @@
       "locked": false,
       "text": "TCP Header\n(20 bytes)",
       "fontSize": 20,
-      "fontFamily": 5,
+      "fontFamily": 8,
       "textAlign": "center",
       "verticalAlign": "middle",
       "containerId": "bgUmM-Qb-pP9BYTgZgxwC",
@@ -275,9 +191,7 @@
       "strokeStyle": "solid",
       "roughness": 1,
       "opacity": 100,
-      "groupIds": [
-        "RKTIriZvRXxZCiBwGgPrd"
-      ],
+      "groupIds": [],
       "frameId": null,
       "index": "b4I",
       "roundness": null,
@@ -291,7 +205,7 @@
       "locked": false,
       "text": "TCP Payload\n(MSS = 1460 bytes)",
       "fontSize": 20,
-      "fontFamily": 5,
+      "fontFamily": 8,
       "textAlign": "center",
       "verticalAlign": "middle",
       "containerId": "e7JL29PdrByli7QtRggO3",
@@ -377,7 +291,7 @@
       "locked": false,
       "text": "MTU\n(1500 bytes)",
       "fontSize": 28,
-      "fontFamily": 5,
+      "fontFamily": 8,
       "textAlign": "center",
       "verticalAlign": "middle",
       "containerId": "8XIHNJ98pAsniUbeNAkKn",
